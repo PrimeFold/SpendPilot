@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { FormEvent, useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,10 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { AuditInput } from "@/types/audit"
+import { runAudit, storeAudit } from "@/lib/audit-engine"
+import { generateSummary } from "@/lib/ai-summary"
+import { prisma } from "@/lib/prisma"
 
 // ─── Static data ───────────────────────────────────────────────────────────────
 
-const TOOLS = [
+const TOOLS: ReadonlyArray<{ id: string; name: string; plans: readonly string[] }> = [
   { id: "cursor",         name: "Cursor",               plans: ["Hobby", "Pro", "Business", "Enterprise"] },
   { id: "github_copilot", name: "GitHub Copilot",       plans: ["Individual", "Business", "Enterprise"] },
   { id: "claude",         name: "Claude (Anthropic)",   plans: ["Free", "Pro", "Max", "Team", "Enterprise", "API direct"] },
@@ -30,32 +34,75 @@ const USE_CASES = ["Coding", "Writing", "Data", "Research", "Mixed"] as const
 
 type ToolId = (typeof TOOLS)[number]["id"]
 
-interface ToolEntry {
-  toolId: ToolId | ""
-  plan: string
-  seats: string
-  monthlySpend: string
-}
-
-const emptyEntry = (): ToolEntry => ({ toolId: "", plan: "", seats: "1", monthlySpend: "" })
-
-// ─── Page ──────────────────────────────────────────────────────────────────────
-
-export default function DashboardPage() {
-  const [teamSize,  setTeamSize]  = useState("")
-  const [useCase,   setUseCase]   = useState("")
-  const [entries,   setEntries]   = useState<ToolEntry[]>([emptyEntry()])
+export default function DashboardClient() {
+  const [loading,setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [teamSize, setTeamSize] = useState(1)
+  const [useCase, setUseCase] = useState("")
+  const [toolId, setToolId] = useState<ToolId | "">("")
+  const [plan, setPlan] = useState("")
+  const [seats, setSeats] = useState(1)
+  const [monthlySpend, setMonthlySpend] = useState(0)
 
-  const updateEntry = (i: number, field: keyof ToolEntry, value: string) =>
-    setEntries(prev => prev.map((e, idx) => idx === i ? { ...e, [field]: value } : e))
+  const selectedTool = TOOLS.find(tool => tool.id === toolId)
+  const totalSpend = typeof monthlySpend === "number" ? monthlySpend : 0
+  const hasValidTeamSize = typeof teamSize === "number" && teamSize > 0
+  const hasValidSeats = typeof seats === "number" && seats > 0
+  const hasValidSpend = typeof monthlySpend === "number" && monthlySpend > 0
+  const hasCompleteToolEntry = Boolean(toolId && plan && hasValidSeats && hasValidSpend)
+  const validEntries = hasCompleteToolEntry ? [{ toolId, plan, seats, monthlySpend }] : []
+  const canSubmit = hasValidTeamSize && useCase !== "" && hasCompleteToolEntry
 
-  const addTool     = () => setEntries(prev => [...prev, emptyEntry()])
-  const removeEntry = (i: number) => setEntries(prev => prev.filter((_, idx) => idx !== i))
+  const handleToolChange = (value: string) => {
+    const nextToolId = value as ToolId | ""
+    const nextTool = TOOLS.find(tool => tool.id === nextToolId)
 
-  const validEntries = entries.filter(e => e.toolId && e.plan && e.monthlySpend)
-  const totalSpend   = validEntries.reduce((sum, e) => sum + (parseFloat(e.monthlySpend) || 0), 0)
-  const canSubmit    = validEntries.length > 0 && teamSize.trim() !== "" && useCase !== ""
+    setToolId(nextToolId)
+    setPlan(currentPlan => (nextTool?.plans.includes(currentPlan) ? currentPlan : ""))
+  }
+
+  const prepareAudit = (): AuditInput => {
+    const parsedTeamSize = Number(teamSize)
+    const parsedMonthlySpend = Number(monthlySpend)
+    const parsedSeats = Number(seats)
+
+    return {
+      toolId: toolId.trim(),
+      plan: plan.trim(),
+      teamSize: Number.isFinite(parsedTeamSize) && parsedTeamSize > 0 ? parsedTeamSize : 0,
+      monthlySpend: Number.isFinite(parsedMonthlySpend) && parsedMonthlySpend >= 0 ? parsedMonthlySpend : 0,
+      seats: Number.isFinite(parsedSeats) && parsedSeats > 0 ? parsedSeats : 0,
+      useCase: useCase.trim(),
+    }
+  }
+
+
+  const handleSubmit = async(e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+
+    try {
+      setLoading(true)
+      const input = prepareAudit()
+      const result = runAudit(input);
+      const summary = await generateSummary(input,result);
+      if(!summary){
+        throw new Error("Summary not found !")
+      }
+      const stored = await storeAudit(input,summary,result)
+      if(!stored.success){
+        throw new Error(stored.message);
+      }
+
+    } catch (error) {
+      throw new Error("Internal Server Error")
+    }
+
+    if (!canSubmit){
+      return
+    }
+
+    setSubmitted(true)
+  }
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f8fafc_0%,#eef4ff_100%)] font-mono text-slate-950">
@@ -84,18 +131,22 @@ export default function DashboardPage() {
         {/* ── Main grid ───────────────────────────────────────────────────── */}
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px] lg:items-start">
 
-          {/* ── Left: form ──────────────────────────────────────────────── */}
-          <div className="space-y-8 border border-slate-200 bg-white p-5 shadow-[0_20px_60px_-48px_rgba(15,23,42,0.45)] sm:p-7 lg:p-8">
-
+          
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-8 border border-slate-200 bg-white p-5 shadow-[0_20px_60px_-48px_rgba(15,23,42,0.45)] sm:p-7 lg:p-8"
+          >
             {/* 01 — Team context */}
             <section className="space-y-5">
               <SectionLabel index="01" label="Team context" />
               <div className="grid gap-4 md:grid-cols-2">
                 <Field label="Team size (headcount)">
                   <Input
+                    type="number"
+                    min={1}
                     placeholder="e.g. 8"
                     value={teamSize}
-                    onChange={e => setTeamSize(e.target.value)}
+                    onChange={e => setTeamSize(Number(e.target.value))}
                     className="h-11 rounded-none border-slate-200 bg-slate-50/80 text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-sky-400 focus-visible:ring-0"
                   />
                 </Field>
@@ -121,25 +172,16 @@ export default function DashboardPage() {
             {/* 02 — Tools */}
             <section className="space-y-6">
               <SectionLabel index="02" label="AI tools you pay for" />
-
-              {entries.map((entry, i) => (
-                <ToolRow
-                  key={i}
-                  index={i}
-                  entry={entry}
-                  onChange={updateEntry}
-                  onRemove={entries.length > 1 ? () => removeEntry(i) : undefined}
-                />
-              ))}
-
-              <button
-                type="button"
-                onClick={addTool}
-                className="inline-flex items-center gap-2 border border-dashed border-sky-200 bg-sky-50/70 px-4 py-3 text-[10px] uppercase tracking-[0.3em] text-sky-700 transition-colors hover:border-sky-300 hover:bg-sky-100"
-              >
-                <span className="text-base leading-none">+</span>
-                Add another tool
-              </button>
+              <ToolRow
+                toolId={toolId}
+                plan={plan}
+                seats={seats}
+                monthlySpend={monthlySpend}
+                onToolChange={handleToolChange}
+                onPlanChange={setPlan}
+                onSeatsChange={setSeats}
+                onMonthlySpendChange={setMonthlySpend}
+              />
             </section>
 
             <div className="h-px bg-slate-200/80" />
@@ -156,43 +198,23 @@ export default function DashboardPage() {
                 </p>
               </div>
               <Button
-                type="button"
+                type="submit"
                 disabled={!canSubmit}
-                onClick={() => setSubmitted(true)}
                 className="h-11 rounded-none bg-slate-950 px-8 text-[10px] uppercase tracking-widest text-white hover:bg-sky-700 disabled:opacity-30"
               >
                 Run audit →
               </Button>
             </div>
-          </div>
+          </form>
 
-          {/* ── Right: scope sidebar ────────────────────────────────────── */}
+          
           <div className="space-y-6 border border-slate-200 bg-white p-5 shadow-[0_20px_60px_-48px_rgba(15,23,42,0.45)] sm:p-7 lg:sticky lg:top-8">
             <SectionLabel index="03" label="Audit scope" />
-
             <div className="border border-sky-100 bg-sky-50/70 p-5 space-y-1">
-              <p className="text-[10px] uppercase tracking-[0.3em] text-sky-700">Tools added</p>
-              <p className="text-3xl font-light text-slate-950">{validEntries.length}</p>
+              <p className="text-[10px] uppercase tracking-[0.3em] text-sky-700">Tool selected</p>
+              <p className="text-xl font-light text-slate-950">{selectedTool?.name ?? "None yet"}</p>
             </div>
-
-            <div className="space-y-2">
-              {validEntries.length === 0 ? (
-                <p className="text-[10px] uppercase tracking-[0.3em] text-slate-300">None yet</p>
-              ) : (
-                validEntries.map((e, i) => {
-                  const tool = TOOLS.find(t => t.id === e.toolId)
-                  return (
-                    <div key={i} className="flex items-center justify-between gap-3 border border-slate-200/70 bg-slate-50 px-3 py-3">
-                      <span className="text-[11px] leading-5 text-slate-700">{tool?.name}</span>
-                      <span className="shrink-0 text-[11px] text-slate-500">${parseFloat(e.monthlySpend || "0").toLocaleString()}</span>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-
             <div className="h-px bg-slate-200/80" />
-
             <div className="space-y-3">
               <p className="text-[10px] uppercase tracking-[0.3em] text-slate-400">What we check</p>
               {[
@@ -223,7 +245,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* ── Results shell (post-submit) ──────────────────────────────────── */}
+        
         {submitted && (
           <div className="mt-6 space-y-8 border border-slate-200 bg-white p-5 shadow-[0_20px_60px_-48px_rgba(15,23,42,0.45)] sm:p-7 lg:p-8">
 
@@ -256,11 +278,11 @@ export default function DashboardPage() {
                     <div>
                       <p className="text-xs text-slate-800">{tool?.name}</p>
                       <p className="mt-1 text-[11px] text-slate-400">
-                        {e.plan} · {e.seats} seat{parseInt(e.seats) !== 1 ? "s" : ""}
+                        {e.plan} · {e.seats} seat{Number(e.seats) !== 1 ? "s" : ""}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-slate-600">${parseFloat(e.monthlySpend || "0").toLocaleString()}/mo</p>
+                      <p className="text-xs text-slate-600">${Number(e.monthlySpend || 0).toLocaleString()}/mo</p>
                       <p className="text-[11px] text-slate-300">savings: —</p>
                     </div>
                   </div>
@@ -336,36 +358,35 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function ToolRow({
-  index,
-  entry,
-  onChange,
-  onRemove,
+  toolId,
+  plan,
+  seats,
+  monthlySpend,
+  onToolChange,
+  onPlanChange,
+  onSeatsChange,
+  onMonthlySpendChange,
 }: {
-  index: number
-  entry: ToolEntry
-  onChange: (i: number, field: keyof ToolEntry, value: string) => void
-  onRemove?: () => void
+  toolId: ToolId | ""
+  plan: string
+  seats: number | 0
+  monthlySpend: number | 0
+  onToolChange: (value: string) => void
+  onPlanChange: (value: string) => void
+  onSeatsChange: (value: number) => void
+  onMonthlySpendChange: (value: number) => void
 }) {
-  const selectedTool = TOOLS.find(t => t.id === entry.toolId)
+  const selectedTool = TOOLS.find(t => t.id === toolId)
 
   return (
     <div className="space-y-5 border border-slate-200 bg-slate-50/80 p-4 sm:p-5">
       <div className="flex items-center justify-between gap-4">
-        <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Tool {index + 1}</span>
-        {onRemove && (
-          <button
-            type="button"
-            onClick={onRemove}
-            className="text-[10px] uppercase tracking-widest text-slate-400 transition-colors hover:text-red-500"
-          >
-            Remove
-          </button>
-        )}
+        <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">Tool details</span>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Field label="Tool">
-          <Select value={entry.toolId} onValueChange={v => onChange(index, "toolId", v)}>
+          <Select value={toolId} onValueChange={onToolChange}>
             <SelectTrigger className="h-11 rounded-none border-slate-200 bg-white text-sm text-slate-900 focus:border-sky-400 focus:ring-0">
               <SelectValue placeholder="Select tool" />
             </SelectTrigger>
@@ -380,8 +401,8 @@ function ToolRow({
         </Field>
 
         <Field label="Plan">
-          <Select value={entry.plan} onValueChange={v => onChange(index, "plan", v)} disabled={!selectedTool}>
-            <SelectTrigger className="h-11 rounded-none border-slate-200 bg-white text-sm text-slate-900 focus:border-sky-400 focus:ring-0 disabled:opacity-40">
+          <Select value={plan} onValueChange={onPlanChange} disabled={!selectedTool}>
+            <SelectTrigger className="h-11 rounded-none border-slate-200 bg-white text-sm text-slate-900 focus:border-sky-400 focus:ring-0 data-[disabled]:opacity-40">
               <SelectValue placeholder="Select plan" />
             </SelectTrigger>
             <SelectContent className="rounded-none border-slate-200 bg-white">
@@ -399,18 +420,20 @@ function ToolRow({
             type="number"
             min={1}
             placeholder="1"
-            value={entry.seats}
-            onChange={e => onChange(index, "seats", e.target.value)}
+            value={seats}
+            onChange={e => onSeatsChange(Number(e.target.value))}
             className="h-11 rounded-none border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-sky-400 focus-visible:ring-0"
           />
         </Field>
 
         <Field label="Monthly spend ($)">
           <Input
-            type="text"
+            type="number"
+            min={0}
+            step="0.01"
             placeholder="e.g. 400"
-            value={entry.monthlySpend}
-            onChange={e => onChange(index, "monthlySpend", e.target.value)}
+            value={monthlySpend}
+            onChange={e => onMonthlySpendChange(Number(e.target.value))}
             className="h-11 rounded-none border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus-visible:border-sky-400 focus-visible:ring-0"
           />
         </Field>

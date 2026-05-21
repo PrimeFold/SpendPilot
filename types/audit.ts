@@ -1,22 +1,24 @@
 export interface AuditInput {
-  organization: string
-  department: string
-  monthlySpend: string
-  primaryVendor: string
-  costDrivers: string
-  auditGoal: string
-  notes: string
+  toolId:string,
+  seats:number,
+  teamSize:number,
+  useCase : string,
+  monthlySpend:number,
+  plan: string,
+
 }
 
-export interface AuditReport {
-  id: string
-  organization: string
-  department: string
-  monthlySpend: string
-  primaryVendor: string
-  costDrivers: string
-  auditGoal: string
-  notes: string
-  score: number
-  recommendations: string[]
+export interface AuditRecommendation {
+  title: string
+  description: string
+  monthlySavings: number
 }
+
+export interface AuditResult {
+  currentSpend: number
+  optimizedSpend: number
+  monthlySavings: number
+  annualSavings: number
+  recommendations: AuditRecommendation[]
+}
+

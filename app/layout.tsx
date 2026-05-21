@@ -1,14 +1,7 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
+import { Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
 
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
@@ -28,25 +21,39 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
+      className={cn("h-full antialiased", geistMono.variable)}
     >
-      <body className="min-h-full flex flex-col">
+      <body className="min-h-full flex flex-col bg-slate-50 text-slate-950 font-mono">
         {/* Header */}
-        <header className="bg-gray-800 text-white p-4 shadow-md">
-          <nav className="container mx-auto flex justify-between items-center">
-            <a href="/" className="text-xl font-bold">SpendPilot</a>
-            {/* Add navigation links here if needed */}
+        <header className="border-b border-slate-200 bg-white">
+          <nav className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10 h-14 flex items-center justify-between">
+            <a
+              href="/"
+              className="text-xs uppercase tracking-[0.3em] text-slate-700 hover:text-slate-950 transition-colors"
+            >
+              SpendPilot
+            </a>
+            <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
+              v0.1 · Demo
+            </span>
           </nav>
         </header>
 
-        {/* Main content area - grows to push footer down */}
-        <main className="grow container mx-auto p-4">
+        {/* Main */}
+        <main className="grow">
           {children}
         </main>
 
         {/* Footer */}
-        <footer className="bg-gray-800 text-white p-4 text-center text-sm">
-          © {new Date().getFullYear()} SpendPilot. All rights reserved.
+        <footer className="border-t border-slate-200 bg-white">
+          <div className="mx-auto max-w-5xl px-6 sm:px-8 lg:px-10 h-12 flex items-center justify-between text-slate-500">
+            <span className="text-[10px] uppercase tracking-[0.3em]">
+              © {new Date().getFullYear()} SpendPilot
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.3em]">
+              All rights reserved
+            </span>
+          </div>
         </footer>
       </body>
     </html>

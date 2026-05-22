@@ -10,6 +10,8 @@ type Recommendation = {
 }
 
 function fallbackSummary(result: AuditResult) {
+  console.log("🟡 Using fallback summary")
+
   if (result.monthlySavings <= 0) {
     return `No major optimization opportunities were identified in the current AI tooling setup. Existing subscriptions appear reasonably aligned with the team's usage and scale.`
   }
@@ -23,6 +25,8 @@ export async function generateSummary(
   recommendations: Recommendation[] = []
 ): Promise<string> {
   try {
+    console.log("🟡 generateSummary started")
+
     const prompt = `
 You are an AI infrastructure cost consultant.
 
@@ -46,7 +50,9 @@ AUDIT RESULTS:
 RECOMMENDATIONS:
 ${
   recommendations.length > 0
-    ? recommendations.map(r => `- ${r.title}: ${r.description}`).join("\n")
+    ? recommendations
+        .map((r) => `- ${r.title}: ${r.description}`)
+        .join("\n")
     : "No specific recommendations generated."
 }
 
@@ -58,20 +64,41 @@ INSTRUCTIONS:
 - Do not use markdown
 `
 
+    console.log("🟡 Prompt prepared")
+    console.log("🟡 Sending request to OpenRouter...")
+
     const completion = await openrouter.chat.completions.create({
       model: "meta-llama/llama-3.3-70b-instruct:free",
-      messages: [{ role: "user", content: prompt }],
+      messages: [
+        {
+          role: "user",
+          content: prompt,
+        },
+      ],
     })
+
+    console.log("🟢 OpenRouter response received")
+    console.log(
+      "🟢 Raw completion:",
+      JSON.stringify(completion, null, 2)
+    )
 
     const summary = completion.choices?.[0]?.message?.content
 
+    console.log("🟡 Extracted summary:", summary)
+
     if (!summary || typeof summary !== "string") {
+      console.log("🔴 Invalid summary returned")
       return fallbackSummary(result)
     }
 
+    console.log("🟢 Returning AI summary")
+
     return summary
   } catch (error) {
+    console.error("🔴 generateSummary failed:")
     console.error(error)
+
     return fallbackSummary(result)
   }
 }

@@ -7,27 +7,36 @@ import { AuditInput } from "@/types/audit"
 
 export async function createAudit(input: AuditInput) {
   const { result, recommendations } = await runAudit(input)
+
   const audit = await storeAudit(
     input,
     result,
     recommendations
   )
 
-  const auditId = audit.id;
+  console.log("🟢 Audit stored:", audit.id)
 
-  generateSummary(input, result, recommendations)
-    .then(async (summary) => {
-      if (!summary) return
+  const summary = await generateSummary(
+    input,
+    result,
+    recommendations
+  )
 
-      await prisma.audit.update({
-        where: { id: auditId },
-        data: { summary },
-      })
-    })
-    .catch(console.error)
+  console.log("🟡 Generated summary:", summary)
+
+  await prisma.audit.update({
+    where: {
+      id: audit.id,
+    },
+    data: {
+      summary,
+    },
+  })
+
+  console.log("🔵 Summary updated in DB")
 
   return {
-    id: auditId,
+    id: audit.id,
     result,
   }
 }

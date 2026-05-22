@@ -3,40 +3,67 @@ import { prisma } from "@/lib/prisma"
 import { ReportClient } from "./reportClient"
 
 export default async function ReportPage({ params }: { params: { id: string } }) {
-  const audit = await prisma.audit.findUnique({
-    where: { id: params.id },
-    include: {
-      recommendations: true,
-    },
-  })
+  console.log("\n🔥 REPORT PAGE HIT")
+  console.log("Params:", params)
 
-  if (!audit) notFound()
+  try {
+    console.log("\n📡 Fetching audit from DB...")
 
-  const report = {
-    id: audit.id,
-    slug: audit.slug,
+    const audit = await prisma.audit.findUnique({
+      where: { id: params.id },
+      include: {
+        recommendations: true,
+      },
+    })
 
-    toolId: audit.toolId,
-    plan: audit.plan,
-    teamSize: audit.teamSize,
-    seats: audit.seats,
-    monthlySpend: audit.monthlySpend,
-    useCase: audit.useCase,
+    console.log("\n📦 RAW AUDIT RESULT:")
+    console.dir(audit, { depth: null })
 
-    result: {
-      currentSpend: audit.currentSpend,
-      optimizedSpend: audit.optimizedSpend,
-      monthlySavings: audit.monthlySavings,
-      annualSavings: audit.annualSavings,
-    },
+    if (!audit) {
+      console.log("❌ Audit not found")
+      notFound()
+    }
 
-    recommendations: audit.recommendations
-      ? JSON.parse(JSON.stringify(audit.recommendations))
-      : [],
+    console.log("\n🧠 Building report object...")
 
-    summary: audit.summary ?? null,
-    createdAt: audit.createdAt.toISOString(),
+    const report = {
+      id: audit.id,
+      slug: audit.slug,
+
+      toolId: audit.toolId,
+      plan: audit.plan,
+      teamSize: audit.teamSize,
+      seats: audit.seats,
+      monthlySpend: audit.monthlySpend,
+      useCase: audit.useCase,
+
+      result: {
+        currentSpend: audit.currentSpend,
+        optimizedSpend: audit.optimizedSpend,
+        monthlySavings: audit.monthlySavings,
+        annualSavings: audit.annualSavings,
+      },
+
+      recommendations: audit.recommendations,
+
+      summary: audit.summary,
+      createdAt: audit.createdAt.toISOString(),
+    }
+
+    console.log("\n📤 FINAL REPORT OBJECT:")
+    console.dir(report, { depth: null })
+
+    console.log("\n🚀 Passing to ReportClient...")
+
+    return <ReportClient report={report} />
+  } catch (err) {
+    console.error("\n💥 REPORT PAGE CRASHED:")
+    console.error(err)
+
+    return (
+      <div style={{ color: "red" }}>
+        Report page crashed. Check server logs.
+      </div>
+    )
   }
-
-  return <ReportClient report={report} />
 }

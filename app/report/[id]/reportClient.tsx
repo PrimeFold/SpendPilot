@@ -54,7 +54,10 @@ export function ReportClient({ report }: ReportClientProps) {
   const safeRecommendations = Array.isArray(recommendations)
     ? recommendations
     : []
+  console.log("🧾 ReportClient received:", report)
 
+  console.log("Result:", report?.result)
+  console.log("Recommendations:", report?.recommendations)
   return (
     <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="rounded-[2rem] border border-border bg-card p-8 shadow-sm shadow-slate-950/10">

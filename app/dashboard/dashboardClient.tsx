@@ -116,8 +116,6 @@ export default function DashboardClient() {
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [submitted, setSubmitted] = useState(false)
-
   const [teamSize, setTeamSize] = useState(1)
   const [useCase, setUseCase] = useState("")
   const [toolId, setToolId] = useState<ToolId | "">("")

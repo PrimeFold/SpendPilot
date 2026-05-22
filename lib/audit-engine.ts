@@ -237,8 +237,6 @@ export async function storeAudit(
   const audit =
     await prisma.audit.create({
       data: {
-        slug: `audit-${Date.now()}`,
-
         toolId: input.toolId,
         plan: input.plan,
 

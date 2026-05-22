@@ -85,55 +85,49 @@ export default function DashboardClient() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-
+    
     if (!canSubmit) {
       setError("Fill all fields properly")
       return
     }
-
+  
     try {
       setError(null)
       setLoading(true)
-
+    
       console.log("STEP 1")
-
+    
       const input = prepareAudit()
-
+    
       const result = await runAudit(input)
-
+    
       console.log("STEP 2")
-
-      const summary = await generateSummary(input, result)
-
-      console.log("STEP 3")
-      if(!summary){
-        throw new Error("Summary not found")
-      }
-      const stored = await storeAudit(input, summary, result)
-
-      console.log("STEP 4", stored)
-
+    
+      const stored = await storeAudit(input, "pending", result)
+    
+      console.log("STEP 3", stored)
+    
       const auditId = stored.data?.id
-
-      if (!auditId) {
-        throw new Error("Audit ID missing")
-      }
-
-      const destination = `/report/${auditId}`
-
-      console.log("STEP 5 - PUSH", destination)
-
-      router.push(destination)
-
-      console.log("STEP 6 - PUSH DONE")
-
-      // background task (DO NOT block flow)
-      generateAndUpdateSummary(auditId, input, result).catch(err => {
-        console.error("Background summary failed:", err)
-      })
-
+    
+      if (!auditId) throw new Error("Missing audit id")
+      
+      console.log("STEP 4 - NAVIGATE")
+  
+      router.push(`/report/${auditId}`)
+  
+      console.log("NAVIGATION TRIGGERED")
+  
+      // NON-BLOCKING AI (still server action, no APIs)
+      generateSummary(input, result)
+        .then(summary => {
+          console.log("SUMMARY READY", summary)
+        })
+        .catch(err => {
+          console.error("SUMMARY FAILED", err)
+        })
+      
     } catch (err) {
-      console.error("HANDLE SUBMIT FAILED:", err)
+      console.error(err)
       setError((err as Error)?.message ?? "Internal Server Error")
     } finally {
       setLoading(false)

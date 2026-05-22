@@ -37,6 +37,7 @@ export default function DashboardClient() {
   const [loading,setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [debugSaved, setDebugSaved] = useState<any | null>(null)
   const [teamSize, setTeamSize] = useState(1)
   const [useCase, setUseCase] = useState("")
   const [toolId, setToolId] = useState<ToolId | "">("")
@@ -107,12 +108,20 @@ export default function DashboardClient() {
       }
 
       const stored = await storeAudit(input, summary, result)
+      console.log('storeAudit result', stored)
+      setDebugSaved(stored)
+
       if (!stored.success || !stored.data) {
         throw new Error(stored.message)
       }
 
-      router.push(`/report/${stored.data.id}`)
-      setSubmitted(true)
+      try {
+        await router.push(`/report/${stored.data.id}`)
+        setSubmitted(true)
+      } catch (navErr) {
+        console.error('router.push failed', navErr)
+        setError('Navigation failed: ' + (navErr as Error).message)
+      }
     } catch (err) {
       console.error(err)
       setError((err as Error)?.message ?? "Internal Server Error")
@@ -221,16 +230,37 @@ export default function DashboardClient() {
               </div>
               <Button
                 type="submit"
-                disabled={!canSubmit}
+                disabled={!canSubmit || loading}
                 className="h-11 rounded-none bg-slate-950 px-8 text-[10px] uppercase tracking-widest text-white hover:bg-sky-700 disabled:opacity-30"
               >
-                Run audit →
+                {loading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                    Running...
+                  </span>
+                ) : (
+                  'Run audit →'
+                )}
               </Button>
             </div>
             {!canSubmit && (
               <p className="mt-2 text-sm text-red-600">{validationMessage()}</p>
             )}
           </form>
+
+          {debugSaved && (
+            <div className="mt-4 rounded-md border border-slate-200 bg-slate-50 p-4 text-sm">
+              <p className="font-medium">Debug: saved audit</p>
+              <pre className="mt-2 max-h-40 overflow-auto text-xs">{JSON.stringify(debugSaved, null, 2)}</pre>
+              {debugSaved?.data?.id && (
+                <div className="mt-2">
+                  <Link href={`/report/${debugSaved.data.id}`}>
+                    <a className="text-sm text-sky-600 underline">Open report (manual)</a>
+                  </Link>
+                </div>
+              )}
+            </div>
+          )}
 
           
           <div className="space-y-6 border border-slate-200 bg-white p-5 shadow-[0_20px_60px_-48px_rgba(15,23,42,0.45)] sm:p-7 lg:sticky lg:top-8">

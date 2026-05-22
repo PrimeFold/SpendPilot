@@ -36,6 +36,7 @@ export default function DashboardClient() {
   const router = useRouter()
   const [loading,setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [teamSize, setTeamSize] = useState(1)
   const [useCase, setUseCase] = useState("")
   const [toolId, setToolId] = useState<ToolId | "">("")
@@ -99,9 +100,9 @@ export default function DashboardClient() {
 
       router.push(`/report/${stored.data.id}`)
       setSubmitted(true)
-    } catch (error) {
-      console.error(error)
-      throw new Error("Internal Server Error")
+    } catch (err) {
+      console.error(err)
+      setError((err as Error)?.message ?? "Internal Server Error")
     } finally {
       setLoading(false)
     }
@@ -139,6 +140,11 @@ export default function DashboardClient() {
             onSubmit={handleSubmit}
             className="space-y-8 border border-slate-200 bg-white p-5 shadow-[0_20px_60px_-48px_rgba(15,23,42,0.45)] sm:p-7 lg:p-8"
           >
+            {error && (
+              <div className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                {error}
+              </div>
+            )}
             {/* 01 — Team context */}
             <section className="space-y-5">
               <SectionLabel index="01" label="Team context" />

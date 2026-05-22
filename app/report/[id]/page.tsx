@@ -9,13 +9,16 @@ interface ReportPageProps {
   }
 }
 
-type AuditReport = {
-  id: string
-  slug: string
-  input: AuditInput
-  result: AuditResult
-  summary: string | null
-  createdAt: string
+function isAuditResult(value: any): value is AuditResult {
+  return (
+    value &&
+    typeof value === "object" &&
+    "currentSpend" in value &&
+    "optimizedSpend" in value &&
+    "monthlySavings" in value &&
+    "annualSavings" in value &&
+    "recommendations" in value
+  )
 }
 
 export default async function ReportPage({ params }: ReportPageProps) {
@@ -27,13 +30,28 @@ export default async function ReportPage({ params }: ReportPageProps) {
     notFound()
   }
 
-  const report: AuditReport = {
+  const input = audit.input as unknown as AuditInput
+
+  const result: AuditResult = isAuditResult(audit.result)
+    ? audit.result
+    : {
+        currentSpend: 0,
+        optimizedSpend: 0,
+        monthlySavings: 0,
+        annualSavings: 0,
+        recommendations: [],
+      }
+
+  const report = {
     id: audit.id,
     slug: audit.slug,
-    input: audit.input as unknown as AuditInput,
-    result: audit.result as unknown as AuditResult,
-    summary: audit.summary,
-    createdAt: audit.createdAt.toISOString(),
+    input,
+    result,
+    summary: audit.summary ?? null,
+    createdAt:
+      audit.createdAt instanceof Date
+        ? audit.createdAt.toISOString()
+        : new Date(audit.createdAt).toISOString(),
   }
 
   return <ReportClient report={report} />

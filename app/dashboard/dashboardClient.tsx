@@ -99,6 +99,7 @@ export default function DashboardClient() {
     }
 
     try {
+      setError(null)
       setLoading(true)
       const input = prepareAudit()
       const result = await runAudit(input)
@@ -115,12 +116,14 @@ export default function DashboardClient() {
         throw new Error(stored.message)
       }
 
+      const destination = `/report/${stored.data.id}`
+      setSubmitted(true)
       try {
-        await router.push(`/report/${stored.data.id}`)
-        setSubmitted(true)
+        await router.push(destination)
       } catch (navErr) {
         console.error('router.push failed', navErr)
-        setError('Navigation failed: ' + (navErr as Error).message)
+        setError('Navigation failed, opening report manually...')
+        window.location.href = destination
       }
     } catch (err) {
       console.error(err)

@@ -12,7 +12,6 @@ datasource db {
 model Audit {
   id String @id @default(cuid())
   slug String @unique
-
   toolId String
   plan String
   teamSize Int

@@ -85,46 +85,32 @@ export default function DashboardClient() {
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-   e.preventDefault()
+    e.preventDefault()
     
-   if (!canSubmit) return
+    if (!canSubmit) return
     
-   try {
-     setError(null)
-     setLoading(true)
+    try {
+      setError(null)
+      setLoading(true)
     
-     const input = prepareAudit()
+      const input = prepareAudit()
     
-     
-     const { result, recommendations } = await runAudit(input)
+      console.log("STEP 1 - sending input")
     
-     
-     const audit = await storeAudit(
-       input,
-       result,
-       recommendations,
-       "pending"
-     )
+      const { id } = await createAudit(input)
     
-     const auditId = audit.id
+      console.log("STEP 2 - audit created", id)
     
+      router.push(`/report/${id}`)
     
-     router.push(`/report/${auditId}`)
+      console.log("STEP 3 - navigation triggered")
     
-    
-     generateSummary(input, result,recommendations).then(async (summary) => {
-       await prisma.audit.update({
-         where: { id: auditId },
-         data: { summary },
-       })
-     })
-    
-   } catch (err) {
-     console.error(err)
-     setError("Something went wrong")
-   } finally {
-     setLoading(false)
-   }
+    } catch (err) {
+      console.error(err)
+      setError((err as Error)?.message ?? "Something went wrong")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

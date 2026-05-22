@@ -1,41 +1,57 @@
 "use server"
 
-import { runAudit, storeAudit } from "@/lib/audit-engine"
+import { runAudit } from "@/lib/audit-engine"
 import { generateSummary } from "@/lib/ai-summary"
+import { prisma } from "@/lib/prisma"
 import { AuditInput } from "@/types/audit"
 
 export async function createAudit(input: AuditInput) {
-  // STEP 1: run audit (pure computation)
   const { result, recommendations } = await runAudit(input)
 
-  // STEP 2: immediate DB write (no summary yet)
-  const audit = await storeAudit(
-    input,
-    result,
-    recommendations,
-    ""
-  )
+  // create DB row (structured fields only)
+  const audit = await prisma.audit.create({
+    data: {
+      slug: `audit-${Date.now()}`,
+      toolId: input.toolId,
+      plan: input.plan,
+      teamSize: input.teamSize,
+      seats: input.seats,
+      monthlySpend: input.monthlySpend,
+      useCase: input.useCase,
 
-  if (!audit?.id) {
-    throw new Error("Failed to store audit")
-  }
+      currentSpend: result.currentSpend,
+      optimizedSpend: result.optimizedSpend,
+      monthlySavings: result.monthlySavings,
+      annualSavings: result.annualSavings,
 
-  generateSummary(input, result)
+      summary: "",
+
+      recommendations: {
+        create: recommendations.map(r => ({
+          title: r.title,
+          description: r.description,
+          monthlySavings: r.monthlySavings,
+        })),
+      },
+    },
+  })
+
+  const auditId = audit.id
+
+  // async enrichment (does NOT block navigation)
+  generateSummary(input, result, recommendations)
     .then(async (summary) => {
-      const safeSummary = summary ?? ""
-      await storeAudit(
-        input,
-        result,
-        recommendations,
-        safeSummary
-      )
+      if (!summary) return
+
+      await prisma.audit.update({
+        where: { id: auditId },
+        data: { summary },
+      })
     })
-    .catch((err) => {
-      console.error("Summary generation failed:", err)
-    })
+    .catch(console.error)
 
   return {
-    id: audit.id,
+    id: auditId,
     result,
   }
 }

@@ -24,13 +24,15 @@ function isAuditResult(value: any): value is AuditResult {
 export default async function ReportPage({ params }: ReportPageProps) {
   const audit = await prisma.audit.findUnique({
     where: { id: params.id },
+    include:{
+      recommendations:true
+    }
   })
 
   if (!audit) {
     notFound()
   }
 
-  const input = audit.input as unknown as AuditInput
 
   const result: AuditResult = isAuditResult(audit.result)
     ? audit.result
@@ -43,16 +45,18 @@ export default async function ReportPage({ params }: ReportPageProps) {
       }
 
   const report = {
-    id: audit.id,
-    slug: audit.slug,
-    input,
-    result,
-    summary: audit.summary ?? null,
-    createdAt:
-      audit.createdAt instanceof Date
-        ? audit.createdAt.toISOString()
-        : new Date(audit.createdAt).toISOString(),
-  }
+  id: audit.id,
+  slug: audit.slug,
+  result: {
+    currentSpend: audit.currentSpend,
+    optimizedSpend: audit.optimizedSpend,
+    monthlySavings: audit.monthlySavings,
+    annualSavings: audit.annualSavings,
+  },
+  recommendations: audit.recommendations,
+  summary: audit.summary,
+  createdAt: audit.createdAt.toISOString(),
+}
 
   return <ReportClient report={report} />
 }

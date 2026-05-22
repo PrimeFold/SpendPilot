@@ -9,7 +9,7 @@ interface AuditReport {
   slug: string
   input: AuditInput
   result: AuditResult
-  summary: string | null
+  summary?: string | null
   createdAt: string
 }
 
@@ -18,8 +18,17 @@ interface ReportClientProps {
 }
 
 export function ReportClient({ report }: ReportClientProps) {
-  const { id, slug, input, result, summary, createdAt } = report
-  const createdDate = new Date(createdAt).toLocaleString()
+  const {
+  id,
+  slug,
+  input,
+  result,
+  summary,
+  createdAt,
+} = report
+
+const createdDate = createdAt ? new Date(createdAt).toLocaleString() : "Unknown"
+const safeRecommendations = Array.isArray(result?.recommendations) ? result.recommendations: []
 
   return (
     <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -102,9 +111,9 @@ export function ReportClient({ report }: ReportClientProps) {
 
             <div className="space-y-4 rounded-3xl border border-border bg-background p-5">
               <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">Recommendations</p>
-              {result.recommendations.length > 0 ? (
+              {safeRecommendations.length > 0 ? (
                 <div className="space-y-3">
-                  {result.recommendations.map((item, index) => (
+                  {safeRecommendations.map((item, index) => (
                     <div key={index} className="rounded-3xl border border-border bg-card p-4">
                       <p className="text-sm font-semibold text-foreground">{item.title}</p>
                       <p className="mt-2 text-sm text-muted-foreground">{item.description}</p>

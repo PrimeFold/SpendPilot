@@ -8,17 +8,42 @@ datasource db {
   provider = "postgresql"
 }
 
+
 model Audit {
   id String @id @default(cuid())
-
   slug String @unique
 
-  input Json
+  // user input (fully structured, no JSON)
+  toolId String
+  plan String
+  teamSize Int
+  seats Int
+  monthlySpend Float
+  useCase String
 
-  result Json
+
+  currentSpend Float
+  optimizedSpend Float
+  monthlySavings Float
+  annualSavings Float
+
+  
+  recommendations Recommendation[]
 
   summary String?
 
   createdAt DateTime @default(now())
 }
 
+model Recommendation {
+  id String @id @default(cuid())
+
+  auditId String
+  audit Audit @relation(fields: [auditId], references: [id], onDelete: Cascade)
+
+  title String
+  description String
+  monthlySavings Float
+
+  createdAt DateTime @default(now())
+}

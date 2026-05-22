@@ -19,6 +19,7 @@ import { createAudit } from "@/lib/createAudit"
 import { generateAndUpdateSummary } from "@/lib/generateUpdateAndSummary"
 import { generateSummary } from "@/lib/ai-summary"
 import { runAudit, storeAudit } from "@/lib/audit-engine"
+import { prisma } from "@/lib/prisma"
 
 
 const TOOLS: ReadonlyArray<{ id: string; name: string; plans: readonly string[] }> = [
@@ -84,54 +85,46 @@ export default function DashboardClient() {
   }
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+   e.preventDefault()
     
-    if (!canSubmit) {
-      setError("Fill all fields properly")
-      return
-    }
-  
-    try {
-      setError(null)
-      setLoading(true)
+   if (!canSubmit) return
     
-      console.log("STEP 1")
+   try {
+     setError(null)
+     setLoading(true)
     
-      const input = prepareAudit()
+     const input = prepareAudit()
     
-      const result = await runAudit(input)
+     // STEP 1: audit
+     const { result, recommendations } = await runAudit(input)
     
-      console.log("STEP 2")
+     // STEP 2: store immediately (fast path)
+     const audit = await storeAudit(
+       input,
+       result,
+       recommendations,
+       "pending"
+     )
     
-      const stored = await storeAudit(input, "pending", result)
+     const auditId = audit.id
     
-      console.log("STEP 3", stored)
+     // STEP 3: navigate immediately
+     router.push(`/report/${auditId}`)
     
-      const auditId = stored.data?.id
+     // STEP 4: background summary (non-blocking)
+     generateSummary(input, result).then(async (summary) => {
+       await prisma.audit.update({
+         where: { id: auditId },
+         data: { summary },
+       })
+     })
     
-      if (!auditId) throw new Error("Missing audit id")
-      
-      console.log("STEP 4 - NAVIGATE")
-  
-      router.push(`/report/${auditId}`)
-  
-      console.log("NAVIGATION TRIGGERED")
-  
-      // NON-BLOCKING AI (still server action, no APIs)
-      generateSummary(input, result)
-        .then(summary => {
-          console.log("SUMMARY READY", summary)
-        })
-        .catch(err => {
-          console.error("SUMMARY FAILED", err)
-        })
-      
-    } catch (err) {
-      console.error(err)
-      setError((err as Error)?.message ?? "Internal Server Error")
-    } finally {
-      setLoading(false)
-    }
+   } catch (err) {
+     console.error(err)
+     setError("Something went wrong")
+   } finally {
+     setLoading(false)
+   }
   }
 
   return (

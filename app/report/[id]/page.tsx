@@ -10,9 +10,7 @@ export default async function ReportPage({ params }: { params: { id: string } })
     },
   })
 
-  if (!audit) {
-    notFound()
-  }
+  if (!audit) notFound()
 
   const report = {
     id: audit.id,
@@ -32,9 +30,11 @@ export default async function ReportPage({ params }: { params: { id: string } })
       annualSavings: audit.annualSavings,
     },
 
-    recommendations: audit.recommendations,
+    recommendations: audit.recommendations
+      ? JSON.parse(JSON.stringify(audit.recommendations))
+      : [],
 
-    summary: audit.summary,
+    summary: audit.summary ?? null,
     createdAt: audit.createdAt.toISOString(),
   }
 

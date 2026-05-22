@@ -5,7 +5,6 @@ export interface AuditInput {
   useCase : string,
   monthlySpend:number,
   plan: string,
-
 }
 
 export interface AuditRecommendation {

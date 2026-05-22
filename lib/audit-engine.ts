@@ -28,7 +28,7 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
         title: "Cursor Hobby is a good fit for your team",
         description:
           "Your current team size and seat count are well matched to Cursor Hobby, so you are not paying for unnecessary seats.",
-        monthlySavings: 0,
+          monthlySavings: 0,
       }
     },
 
@@ -58,53 +58,6 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
         monthlySavings: 0,
       }
     },
-
-    Business: (input) => {
-      if (input.teamSize <= 2 && input.seats <= 2) {
-        return {
-          title: "Cursor Business is likely overkill",
-          description:
-            "Very small teams can usually move down to Pro without losing essential capabilities, freeing up budget for other AI tools.",
-          monthlySavings: 55,
-        }
-      }
-
-      if (input.teamSize > 25 || input.seats > 20) {
-        return {
-          title:
-            "Cursor Enterprise may be the better long-term choice",
-          description:
-            "High seat counts and larger teams can capture stronger volume pricing and dedicated enterprise support by upgrading.",
-          monthlySavings: 70,
-        }
-      }
-
-      return {
-        title: "Cursor Business is a solid match for your usage",
-        description:
-          "Your current team and seat count are a good fit for Cursor Business unless you need enterprise governance features.",
-        monthlySavings: 0,
-      }
-    },
-
-    Enterprise: (input) => {
-      if (input.teamSize <= 8 && input.seats <= 8) {
-        return {
-          title: "Cursor Enterprise may be oversized",
-          description:
-            "Smaller teams on Enterprise often save by moving to Business while keeping most collaboration and admin capabilities.",
-          monthlySavings: 85,
-        }
-      }
-
-      return {
-        title:
-          "Cursor Enterprise looks appropriate for a large organization",
-        description:
-          "Enterprise is justified for teams with broad seat coverage or strict compliance needs, but continue to review seat utilization.",
-        monthlySavings: 0,
-      }
-    },
   },
 
   github_copilot: {
@@ -122,55 +75,6 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
         title: "Individual plan suits your single-user team",
         description:
           "GitHub Copilot Individual is the best fit when only one person is using the tool and team-wide access is not required.",
-        monthlySavings: 0,
-      }
-    },
-
-    Business: (input) => {
-      if (input.seats <= 2 && input.teamSize <= 4) {
-        return {
-          title:
-            "Consider Copilot Individual for a very small team",
-          description:
-            "If only a couple of people are using Copilot, the Individual plan may be more cost-effective than Business.",
-          monthlySavings: 45,
-        }
-      }
-
-      if (input.seats > 15 || input.teamSize > 30) {
-        return {
-          title: "Evaluate GitHub Copilot Enterprise",
-          description:
-            "Larger organizations often benefit from Enterprise pricing and centralized admin controls once seat counts grow.",
-          monthlySavings: 60,
-        }
-      }
-
-      return {
-        title:
-          "GitHub Copilot Business is generally well suited for your team",
-        description:
-          "Business offers a good balance of collaboration and price for most small-to-medium engineering teams.",
-        monthlySavings: 0,
-      }
-    },
-
-    Enterprise: (input) => {
-      if (input.seats <= 5 && input.teamSize <= 10) {
-        return {
-          title:
-            "GitHub Copilot Enterprise may be more than needed",
-          description:
-            "Smaller engineering organizations can often save by using Business unless they require enterprise-grade compliance or single sign-on.",
-          monthlySavings: 65,
-        }
-      }
-
-      return {
-        title:
-          "GitHub Copilot Enterprise is appropriate for a large engineering organization",
-        description:
-          "Enterprise is the right choice for teams that need advanced governance, security, and usage controls across many developers.",
         monthlySavings: 0,
       }
     },
@@ -194,111 +98,42 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
         monthlySavings: 0,
       }
     },
+  },
 
-    Pro: (input) => {
-      if (input.teamSize > 6 || input.seats > 6) {
+  chatgpt: {
+    Plus: (input) => {
+      if (input.seats > 1 || input.teamSize > 1) {
         return {
-          title: "Consider Claude Max for larger teams",
+          title: "Move from ChatGPT Plus to Team",
           description:
-            "Claude Pro works for small groups, but teams with heavier usage will save by upgrading to Max or Team.",
+            "Plus is designed for individuals; teams should use Team for shared access and better management.",
           monthlySavings: 35,
         }
       }
 
-      if (input.teamSize <= 2 && input.seats <= 2) {
-        return {
-          title:
-            "Claude Free may be enough for very light usage",
-          description:
-            "If your team is small and spend is minimal, Claude Free could replace Pro for basic workflows.",
-          monthlySavings: 25,
-        }
-      }
-
       return {
-        title:
-          "Claude Pro is a good fit for your current team",
+        title: "ChatGPT Plus is a solid choice for one user",
         description:
-          "Pro is well suited for small teams that need more capacity than Free without paying for Team-level pricing.",
-        monthlySavings: 0,
-      }
-    },
-
-    Max: (input) => {
-      if (input.teamSize > 10 || input.seats > 10) {
-        return {
-          title:
-            "Evaluate Claude Team for broader collaboration",
-          description:
-            "Claude Max is strong for growing teams, but Team offers additional workspace and management benefits.",
-          monthlySavings: 40,
-        }
-      }
-
-      if (input.teamSize <= 4 && input.seats <= 4) {
-        return {
-          title:
-            "Claude Pro may be sufficient for smaller groups",
-          description:
-            "If your team remains compact, Max is likely more expensive than necessary compared to Pro.",
-          monthlySavings: 30,
-        }
-      }
-
-      return {
-        title:
-          "Claude Max aligns with moderate team demand",
-        description:
-          "Max is a sensible middle tier for teams needing stronger performance than Pro without full Team-level capacity.",
+          "Plus is ideal when a single person is using ChatGPT and team-wide access is not required.",
         monthlySavings: 0,
       }
     },
 
     Team: (input) => {
-      if (input.teamSize <= 6 && input.seats <= 6) {
+      if (input.teamSize <= 3 && input.seats <= 3) {
         return {
-          title: "Claude Max may be a better value",
+          title: "Consider ChatGPT Plus for a very small team",
           description:
-            "For smaller teams, the Team tier can be overkill; Claude Max often delivers the same capabilities at lower cost.",
+            "If just a few people are using ChatGPT, Plus may be a more economical choice than Team.",
           monthlySavings: 30,
         }
       }
 
-      if (input.monthlySpend > 3000) {
-        return {
-          title:
-            "Review Claude Enterprise or negotiated pricing",
-          description:
-            "Very high spend can often be improved through a custom enterprise agreement rather than standard Team pricing.",
-          monthlySavings: 55,
-        }
-      }
-
       return {
         title:
-          "Claude Team is appropriate for multi-user collaboration",
+          "ChatGPT Team is generally well matched to your current usage",
         description:
-          "Team is a good choice for organizations managing several active users across AI workflows.",
-        monthlySavings: 0,
-      }
-    },
-
-    "API direct": (input) => {
-      if (input.monthlySpend > 2500) {
-        return {
-          title:
-            "Negotiate Claude enterprise pricing for high spend",
-          description:
-            "When API spend grows, a committed enterprise contract usually delivers significantly better unit economics.",
-          monthlySavings: 90,
-        }
-      }
-
-      return {
-        title:
-          "Claude API direct is a flexible option for usage-based spend",
-        description:
-          "Pay-as-you-go is sensible for variable API consumption, but review token usage to avoid unforeseen cost spikes.",
+          "Team works well for small groups that need shared access and centralized controls.",
         monthlySavings: 0,
       }
     },
@@ -319,21 +154,63 @@ function toJsonValue<T>(value: T): Prisma.InputJsonValue {
 export async function runAudit(
   input: AuditInput
 ): Promise<AuditResult> {
-  const provider = providerRules[input.toolId]
-  const planRule = provider?.[input.plan]
+  console.log("\n================ RUN AUDIT ================\n")
+
+  console.log("RAW INPUT:")
+  console.log(input)
+
+  console.log("\nAVAILABLE PROVIDERS:")
+  console.log(Object.keys(providerRules))
+
+  const normalizedToolId = input.toolId.trim()
+  const normalizedPlan = input.plan.trim()
+
+  console.log("\nNORMALIZED VALUES:")
+  console.log({
+    normalizedToolId,
+    normalizedPlan,
+  })
+
+  const provider = providerRules[normalizedToolId]
+
+  console.log("\nPROVIDER FOUND:")
+  console.log(provider)
+
+  if (!provider) {
+    console.error(
+      `❌ No provider rules found for toolId: ${normalizedToolId}`
+    )
+  }
+
+  const planRule = provider?.[normalizedPlan]
+
+  console.log("\nPLAN RULE FOUND:")
+  console.log(planRule)
+
+  if (!planRule) {
+    console.error(
+      `❌ No plan rule found for plan: ${normalizedPlan}`
+    )
+  }
 
   const recommendations: AuditRecommendation[] = []
 
   let monthlySavings = 0
 
   if (planRule) {
+    console.log("\nRUNNING PLAN RULE...\n")
+
     const recommendation = planRule(input)
 
+    console.log("RECOMMENDATION RESULT:")
+    console.log(recommendation)
+
     if (recommendation) {
-      const normalizedSavings = normalizeMonthlySavings(
-        recommendation.monthlySavings,
-        input.monthlySpend
-      )
+      const normalizedSavings =
+        normalizeMonthlySavings(
+          recommendation.monthlySavings,
+          input.monthlySpend
+        )
 
       monthlySavings += normalizedSavings
 
@@ -341,8 +218,18 @@ export async function runAudit(
         ...recommendation,
         monthlySavings: normalizedSavings,
       })
+
+      console.log("\nUPDATED RECOMMENDATIONS:")
+      console.log(recommendations)
+
+      console.log("\nUPDATED MONTHLY SAVINGS:")
+      console.log(monthlySavings)
     }
   } else {
+    console.log(
+      "\n⚠️ ENTERING FALLBACK RECOMMENDATION BRANCH\n"
+    )
+
     recommendations.push({
       title: "Review your plan selection",
       description:
@@ -352,6 +239,10 @@ export async function runAudit(
   }
 
   if (input.seats > input.teamSize + 1) {
+    console.log(
+      "\n⚠️ EXCESS SEAT RULE TRIGGERED\n"
+    )
+
     const excessSeats = input.seats - input.teamSize
 
     const excessSavings = Math.min(
@@ -372,9 +263,16 @@ export async function runAudit(
       description: `You have ${excessSeats} more seats than active team members. Eliminating unused seats can reduce recurring costs without changing your plan.`,
       monthlySavings: normalizedExcessSavings,
     })
+
+    console.log("\nEXCESS SEAT RECOMMENDATION ADDED:")
+    console.log(recommendations)
   }
 
   if (recommendations.length === 0) {
+    console.log(
+      "\n⚠️ NO RECOMMENDATIONS GENERATED\n"
+    )
+
     recommendations.push({
       title: "No immediate audit recommendations",
       description:
@@ -388,7 +286,7 @@ export async function runAudit(
     input.monthlySpend
   )
 
-  return {
+  const finalResult: AuditResult = {
     currentSpend: input.monthlySpend,
     optimizedSpend: Math.max(
       0,
@@ -398,6 +296,15 @@ export async function runAudit(
     annualSavings: monthlySavings * 12,
     recommendations,
   }
+
+  console.log("\nFINAL RESULT:")
+  console.log(JSON.stringify(finalResult, null, 2))
+
+  console.log(
+    "\n===========================================\n"
+  )
+
+  return finalResult
 }
 
 export async function storeAudit(
@@ -405,11 +312,19 @@ export async function storeAudit(
   summary: string,
   result?: AuditResult
 ) {
+  console.log("\n=========== STORE AUDIT ===========\n")
+
   const auditResult = result ?? (await runAudit(input))
+
+  console.log("AUDIT RESULT TO STORE:")
+  console.log(JSON.stringify(auditResult, null, 2))
 
   const slug = `audit-${Date.now().toString(
     36
   )}-${Math.random().toString(36).slice(2, 8)}`
+
+  console.log("\nGENERATED SLUG:")
+  console.log(slug)
 
   try {
     const audit = await prisma.audit.create({
@@ -421,12 +336,18 @@ export async function storeAudit(
       },
     })
 
+    console.log("\n✅ AUDIT STORED SUCCESSFULLY")
+    console.log(audit)
+
     return {
       success: true,
       message: "Audit saved successfully",
       data: audit,
     }
   } catch (error) {
+    console.error("\n❌ STORE AUDIT FAILED")
+    console.error(error)
+
     return {
       success: false,
       message:

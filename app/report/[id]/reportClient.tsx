@@ -12,7 +12,7 @@ type Recommendation = {
 
 interface AuditReport {
   id: string
-  slug: string
+  slug?: string | null
   toolId: string
   plan: string
   teamSize: number
@@ -54,10 +54,7 @@ export function ReportClient({ report }: ReportClientProps) {
   const safeRecommendations = Array.isArray(recommendations)
     ? recommendations
     : []
-  console.log("🧾 ReportClient received:", report)
 
-  console.log("Result:", report?.result)
-  console.log("Recommendations:", report?.recommendations)
   return (
     <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
       <div className="rounded-[2rem] border border-border bg-card p-8 shadow-sm shadow-slate-950/10">
@@ -67,9 +64,11 @@ export function ReportClient({ report }: ReportClientProps) {
             <p className="text-sm uppercase tracking-[0.3em] text-primary">
               Audit report
             </p>
+
             <h1 className="mt-3 text-3xl font-semibold text-foreground sm:text-4xl">
               Audit details
             </h1>
+
             <p className="mt-4 text-sm leading-7 text-muted-foreground">
               Review the audit summary, savings, and recommendations for the selected report.
             </p>
@@ -91,12 +90,20 @@ export function ReportClient({ report }: ReportClientProps) {
               <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
                 Report metadata
               </p>
+
               <p className="text-sm text-foreground">ID: {id}</p>
-              <p className="text-sm text-foreground">Slug: {slug}</p>
-              <p className="text-sm text-foreground">Created: {createdDate}</p>
+
+              {/* SAFE FALLBACK */}
+              <p className="text-sm text-foreground">
+                Slug: {slug ?? "N/A"}
+              </p>
+
+              <p className="text-sm text-foreground">
+                Created: {createdDate}
+              </p>
             </div>
 
-            {/* TOOL INFO (replaces old input section) */}
+            {/* TOOL INFO */}
             <div className="space-y-3 rounded-3xl border border-border bg-background p-5">
               <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
                 Tool context
@@ -126,10 +133,12 @@ export function ReportClient({ report }: ReportClientProps) {
               </div>
             </div>
 
+            {/* SUMMARY */}
             <div className="space-y-3 rounded-3xl border border-border bg-background p-5">
               <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
                 AI summary
               </p>
+
               <p className="text-sm leading-6 text-foreground">
                 {summary ?? "No AI summary is available for this report yet."}
               </p>
@@ -148,6 +157,7 @@ export function ReportClient({ report }: ReportClientProps) {
               <p className="mt-3 text-3xl font-semibold text-foreground">
                 ${result.monthlySavings.toLocaleString()}
               </p>
+
               <p className="text-sm text-muted-foreground">
                 Estimated monthly savings
               </p>
@@ -173,6 +183,7 @@ export function ReportClient({ report }: ReportClientProps) {
               ))}
             </div>
 
+            {/* RECOMMENDATIONS */}
             <div className="space-y-4 rounded-3xl border border-border bg-background p-5">
               <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
                 Recommendations
@@ -188,9 +199,11 @@ export function ReportClient({ report }: ReportClientProps) {
                       <p className="text-sm font-semibold text-foreground">
                         {item.title}
                       </p>
+
                       <p className="mt-2 text-sm text-muted-foreground">
                         {item.description}
                       </p>
+
                       <p className="mt-3 text-xs uppercase tracking-[0.3em] text-muted-foreground">
                         Estimated savings: ${item.monthlySavings}/mo
                       </p>

@@ -65,11 +65,11 @@ export default function DashboardClient() {
 
   const prepareAudit = (): AuditInput => ({
     toolId: toolId.trim(),
-    plan: plan.trim(),
-    teamSize,
     seats,
-    monthlySpend,
+    teamSize,
     useCase: useCase.trim(),
+    monthlySpend,
+    plan: plan.trim(),
   })
 
   const validationMessage = () => {

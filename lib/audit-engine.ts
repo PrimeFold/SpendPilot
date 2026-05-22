@@ -49,7 +49,9 @@ export async function runAudit(input: AuditInput): Promise<{
 
   const result = computeResult(input)
 
-  const recommendations = rule ? rule(input) : []
+  const recommendations = providerRules[input.toolId]?.[input.plan]
+    ? providerRules[input.toolId][input.plan](input)
+    : []
 
   return { result, recommendations }
 }
@@ -58,7 +60,7 @@ export async function storeAudit(
   input: AuditInput,
   result: AuditResult,
   recommendations: AuditRecommendation[],
-  summary: string
+  summary?: string
 ) {
   const audit = await prisma.audit.create({
     data: {

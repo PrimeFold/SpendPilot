@@ -28,7 +28,6 @@ export default async function ReportPage({ params }: { params: { id: string } })
 
     const report = {
       id: audit.id,
-      slug: audit.slug,
 
       toolId: audit.toolId,
       plan: audit.plan,

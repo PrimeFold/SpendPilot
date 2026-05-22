@@ -1,44 +1,20 @@
 "use server"
 
-import { runAudit } from "@/lib/audit-engine"
+import { runAudit, storeAudit } from "@/lib/audit-engine"
 import { generateSummary } from "@/lib/ai-summary"
 import { prisma } from "@/lib/prisma"
 import { AuditInput } from "@/types/audit"
 
 export async function createAudit(input: AuditInput) {
   const { result, recommendations } = await runAudit(input)
+  const audit = await storeAudit(
+    input,
+    result,
+    recommendations
+  )
 
-  // create DB row (structured fields only)
-  const audit = await prisma.audit.create({
-    data: {
-      slug: `audit-${Date.now()}`,
-      toolId: input.toolId,
-      plan: input.plan,
-      teamSize: input.teamSize,
-      seats: input.seats,
-      monthlySpend: input.monthlySpend,
-      useCase: input.useCase,
+  const auditId = audit.id;
 
-      currentSpend: result.currentSpend,
-      optimizedSpend: result.optimizedSpend,
-      monthlySavings: result.monthlySavings,
-      annualSavings: result.annualSavings,
-
-      summary: "",
-
-      recommendations: {
-        create: recommendations.map(r => ({
-          title: r.title,
-          description: r.description,
-          monthlySavings: r.monthlySavings,
-        })),
-      },
-    },
-  })
-
-  const auditId = audit.id
-
-  // async enrichment (does NOT block navigation)
   generateSummary(input, result, recommendations)
     .then(async (summary) => {
       if (!summary) return

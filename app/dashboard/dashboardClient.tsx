@@ -1,5 +1,5 @@
 "use client"
-
+import { useEffect } from "react"
 import { FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -29,6 +29,58 @@ const TOOLS: ReadonlyArray<{ id: string; name: string; plans: readonly string[] 
 ] as const
 
 const USE_CASES = ["Coding", "Writing", "Data", "Research", "Mixed"] as const
+const AI_PRICING: Record<string, Record<string, number>> = {
+  cursor: {
+    free: 0,
+    pro: 20,
+    business: 40,
+  },
+
+  github_copilot: {
+    individual: 10,
+    business: 19,
+    enterprise: 39,
+  },
+
+  claude: {
+    free: 0,
+    pro: 20,
+    team: 25,
+    max: 100,
+  },
+
+  chatgpt: {
+    free: 0,
+    plus: 20,
+    team: 25,
+    enterprise: 60,
+    pro: 100,
+  },
+
+  gemini: {
+    free: 0,
+    pro: 20,
+    ultra: 250,
+  },
+
+  windsurf: {
+    free: 0,
+    pro: 15,
+    teams: 30,
+  },
+
+  openai_api: {
+    starter: 25,
+    growth: 100,
+    scale: 500,
+  },
+
+  anthropic_api: {
+    starter: 30,
+    growth: 120,
+    scale: 600,
+  },
+}
 
 type ToolId = (typeof TOOLS)[number]["id"]
 
@@ -46,14 +98,27 @@ export default function DashboardClient() {
   const [seats, setSeats] = useState(1)
   const [monthlySpend, setMonthlySpend] = useState(0)
 
+  useEffect(() => {
+  if (!toolId || !plan) {
+    setMonthlySpend(0)
+    return
+  }
+
+  const normalizedPlan = plan.toLowerCase()
+
+  const seatPrice = AI_PRICING[toolId]?.[normalizedPlan] ?? 0
+
+  setMonthlySpend(seatPrice * seats)
+}, [toolId, plan, seats])
+  
   const selectedTool = TOOLS.find(t => t.id === toolId)
 
   const hasValidTeamSize = teamSize > 0
   const hasValidSeats = seats > 0
-  const hasValidSpend = monthlySpend > 0
+  
 
-  const hasCompleteToolEntry =
-    Boolean(toolId && plan && hasValidSeats && hasValidSpend)
+
+  const hasCompleteToolEntry =Boolean(toolId && plan && hasValidSeats);
 
   const canSubmit =
     hasValidTeamSize && useCase !== "" && hasCompleteToolEntry
@@ -73,8 +138,7 @@ export default function DashboardClient() {
     const reasons: string[] = []
     if (!hasValidTeamSize) reasons.push("team size must be ≥ 1")
     if (useCase === "") reasons.push("select a use case")
-    if (!hasCompleteToolEntry)
-      reasons.push("add tool, plan, seats, and spend")
+    if (!hasCompleteToolEntry) reasons.push("add tool, plan, and seats")
 
     return `Missing: ${reasons.join(", ")}`
   }
@@ -184,13 +248,12 @@ export default function DashboardClient() {
             />
           </div>
 
-          <div>
-            <Label>Monthly Spend</Label>
-            <Input
-              type="number"
-              value={monthlySpend}
-              onChange={e => setMonthlySpend(Number(e.target.value))}
-            />
+         <div>
+            <Label>Estimated Monthly Spend</Label>
+
+            <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
+              ${monthlySpend.toLocaleString()}
+            </div>
           </div>
 
           <Button type="submit" disabled={!canSubmit || loading}>

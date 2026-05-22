@@ -9,18 +9,191 @@ export type AuditRecommendation = {
   monthlySavings: number
 }
 
-type AuditRule = (input: AuditInput) => AuditRecommendation[]
+type AuditRule = (
+  input: AuditInput,
+  seatPrice: number
+) => AuditRecommendation[]
 
-const providerRules: Record<string, Record<string, AuditRule>> = {
+export const AI_PRICING: Record<
+  string,
+  Record<string, number>
+> = {
+  cursor: {
+    free: 0,
+    pro: 20,
+    business: 40,
+  },
+
+  github_copilot: {
+    individual: 10,
+    business: 19,
+    enterprise: 39,
+  },
+
+  claude: {
+    free: 0,
+    pro: 20,
+    team: 25,
+    max: 100,
+  },
+
   chatgpt: {
-    team: (input) => {
+    free: 0,
+    plus: 20,
+    team: 25,
+    enterprise: 60,
+    pro: 100,
+  },
+
+  gemini: {
+    free: 0,
+    pro: 20,
+    ultra: 250,
+  },
+
+  windsurf: {
+    free: 0,
+    pro: 15,
+    teams: 30,
+  },
+
+  openai_api: {
+    starter: 25,
+    growth: 100,
+    scale: 500,
+  },
+
+  anthropic_api: {
+    starter: 30,
+    growth: 120,
+    scale: 600,
+  },
+}
+
+const providerRules: Record<
+  string,
+  Record<string, AuditRule>
+> = {
+  chatgpt: {
+    team: (input, seatPrice) => {
+      const recs: AuditRecommendation[] = []
+
+      if (input.seats > input.teamSize) {
+        const unusedSeats =
+          input.seats - input.teamSize
+
+        recs.push({
+          title: "Reduce unused licenses",
+          description:
+            "Your organization is paying for more ChatGPT Team licenses than actively required.",
+          monthlySavings:
+            unusedSeats * seatPrice,
+        })
+      }
+
+      if (input.teamSize <= 2) {
+        recs.push({
+          title: "Downgrade to ChatGPT Plus",
+          description:
+            "Smaller teams may not require collaboration-focused Team features.",
+          monthlySavings:
+            input.seats * 5,
+        })
+      }
+
+      return recs
+    },
+  },
+
+  cursor: {
+    business: (input) => {
+      const recs: AuditRecommendation[] = []
+
+      if (input.teamSize < 5) {
+        recs.push({
+          title:
+            "Consider Cursor Pro instead of Business",
+          description:
+            "Smaller engineering teams may not benefit from Business-tier controls.",
+          monthlySavings:
+            input.seats * 20,
+        })
+      }
+
+      return recs
+    },
+  },
+
+  github_copilot: {
+    enterprise: (input) => {
+      const recs: AuditRecommendation[] = []
+
+      if (input.teamSize < 10) {
+        recs.push({
+          title:
+            "Downgrade from Copilot Enterprise",
+          description:
+            "Enterprise controls may be unnecessary for smaller development teams.",
+          monthlySavings:
+            input.seats * 20,
+        })
+      }
+
+      return recs
+    },
+  },
+
+  claude: {
+    team: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
 
       if (input.seats > input.teamSize) {
         recs.push({
-          title: "Reduce excess seats",
-          description: "You are paying for unused seats.",
-          monthlySavings: 20,
+          title:
+            "Reduce unused Claude Team licenses",
+          description:
+            "Some Claude Team seats appear underutilized.",
+          monthlySavings:
+            (input.seats - input.teamSize) *
+            seatPrice,
+        })
+      }
+
+      return recs
+    },
+  },
+
+  gemini: {
+    ultra: (input) => {
+      const recs: AuditRecommendation[] = []
+
+      if (input.teamSize <= 3) {
+        recs.push({
+          title:
+            "Review Gemini Ultra necessity",
+          description:
+            "Gemini Ultra may be excessive for smaller organizations with moderate AI usage.",
+          monthlySavings:
+            input.seats * 200,
+        })
+      }
+
+      return recs
+    },
+  },
+
+  windsurf: {
+    teams: (input) => {
+      const recs: AuditRecommendation[] = []
+
+      if (input.teamSize <= 2) {
+        recs.push({
+          title:
+            "Downgrade Windsurf Teams plan",
+          description:
+            "Smaller teams may achieve similar productivity using Pro plans.",
+          monthlySavings:
+            input.seats * 15,
         })
       }
 
@@ -29,31 +202,83 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
   },
 }
 
-function computeResult(input: AuditInput): AuditResult {
-  const monthlySavings = input.monthlySpend * 0.2
+function calculateMonthlySpend(
+  input: AuditInput
+) {
+  const providerPricing =
+    AI_PRICING[input.toolId]
+
+  if (!providerPricing) {
+    return {
+      currentSpend: 0,
+      seatPrice: 0,
+    }
+  }
+
+  const seatPrice =
+    providerPricing[
+      input.plan.toLowerCase()
+    ] ?? 0
 
   return {
-    currentSpend: input.monthlySpend,
-    optimizedSpend: input.monthlySpend - monthlySavings,
-    monthlySavings,
-    annualSavings: monthlySavings * 12,
+    currentSpend:
+      seatPrice * input.seats,
+    seatPrice,
   }
 }
 
-export async function runAudit(input: AuditInput): Promise<{
+function computeResult(
+  currentSpend: number,
+  recommendations: AuditRecommendation[]
+): AuditResult {
+  const monthlySavings =
+    recommendations.reduce(
+      (acc, rec) =>
+        acc + rec.monthlySavings,
+      0
+    )
+
+  return {
+    currentSpend,
+    optimizedSpend: Math.max(
+      currentSpend - monthlySavings,
+      0
+    ),
+    monthlySavings,
+    annualSavings:
+      monthlySavings * 12,
+  }
+}
+
+export async function runAudit(
+  input: AuditInput
+): Promise<{
   result: AuditResult
   recommendations: AuditRecommendation[]
 }> {
-  const provider = providerRules[input.toolId]
-  const rule = provider?.[input.plan.toLowerCase()]
+  const {
+    currentSpend,
+    seatPrice,
+  } = calculateMonthlySpend(input)
 
-  const result = computeResult(input)
+  const rule =
+    providerRules[input.toolId]?.[
+      input.plan.toLowerCase()
+    ]
 
-  const recommendations = providerRules[input.toolId]?.[input.plan]
-    ? providerRules[input.toolId][input.plan](input)
+  const recommendations = rule
+    ? rule(input, seatPrice)
     : []
 
-  return { result, recommendations }
+  const result = computeResult(
+    currentSpend,
+    recommendations
+  )
+
+  return {
+    result,
+    recommendations,
+  }
 }
 
 export async function storeAudit(
@@ -62,35 +287,53 @@ export async function storeAudit(
   recommendations: AuditRecommendation[],
   summary?: string
 ) {
-  const audit = await prisma.audit.create({
-    data: {
-      slug: `audit-${Date.now()}`,
+  const audit =
+    await prisma.audit.create({
+      data: {
+        slug: `audit-${Date.now()}`,
 
-      toolId: input.toolId,
-      plan: input.plan,
-      teamSize: input.teamSize,
-      seats: input.seats,
-      monthlySpend: input.monthlySpend,
-      useCase: input.useCase,
+        toolId: input.toolId,
+        plan: input.plan,
 
-      currentSpend: result.currentSpend,
-      optimizedSpend: result.optimizedSpend,
-      monthlySavings: result.monthlySavings,
-      annualSavings: result.annualSavings,
+        teamSize: input.teamSize,
+        seats: input.seats,
 
-      summary,
-    },
-  })
+        monthlySpend:
+          result.currentSpend,
+
+        useCase: input.useCase,
+
+        currentSpend:
+          result.currentSpend,
+
+        optimizedSpend:
+          result.optimizedSpend,
+
+        monthlySavings:
+          result.monthlySavings,
+
+        annualSavings:
+          result.annualSavings,
+
+        summary,
+      },
+    })
 
   if (recommendations.length > 0) {
-    await prisma.recommendation.createMany({
-      data: recommendations.map((r) => ({
-        auditId: audit.id,
-        title: r.title,
-        description: r.description,
-        monthlySavings: r.monthlySavings,
-      })),
-    })
+    await prisma.recommendation.createMany(
+      {
+        data: recommendations.map(
+          (r) => ({
+            auditId: audit.id,
+            title: r.title,
+            description:
+              r.description,
+            monthlySavings:
+              r.monthlySavings,
+          })
+        ),
+      }
+    )
   }
 
   return audit

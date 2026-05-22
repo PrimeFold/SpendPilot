@@ -17,15 +17,42 @@ import { AuditInput } from "@/types/audit"
 import { createAudit } from "@/lib/createAudit"
 
 
-const TOOLS: ReadonlyArray<{ id: string; name: string; plans: readonly string[] }> = [
-  { id: "cursor", name: "Cursor", plans: ["Hobby", "Pro", "Business", "Enterprise"] },
-  { id: "github_copilot", name: "GitHub Copilot", plans: ["Individual", "Business", "Enterprise"] },
-  { id: "claude", name: "Claude (Anthropic)", plans: ["Free", "Pro", "Max", "Team", "Enterprise", "API direct"] },
-  { id: "chatgpt", name: "ChatGPT (OpenAI)", plans: ["Plus", "Team", "Enterprise", "API direct"] },
-  { id: "anthropic_api", name: "Anthropic API direct", plans: ["Pay-as-you-go"] },
-  { id: "openai_api", name: "OpenAI API direct", plans: ["Pay-as-you-go"] },
-  { id: "gemini", name: "Gemini (Google)", plans: ["Pro", "Ultra", "API"] },
-  { id: "windsurf", name: "Windsurf", plans: ["Free", "Pro", "Teams"] },
+const TOOLS = [
+  {
+    id: "cursor",
+    name: "Cursor",
+    plans: ["Free", "Pro", "Business"],
+  },
+
+  {
+    id: "github_copilot",
+    name: "GitHub Copilot",
+    plans: ["Individual", "Business", "Enterprise"],
+  },
+
+  {
+    id: "claude",
+    name: "Claude (Anthropic)",
+    plans: ["Free", "Pro", "Team", "Max"],
+  },
+
+  {
+    id: "chatgpt",
+    name: "ChatGPT (OpenAI)",
+    plans: ["Free", "Plus", "Team", "Enterprise", "Pro"],
+  },
+
+  {
+    id: "gemini",
+    name: "Gemini (Google)",
+    plans: ["Free", "Pro", "Ultra"],
+  },
+
+  {
+    id: "windsurf",
+    name: "Windsurf",
+    plans: ["Free", "Pro", "Teams"],
+  },
 ] as const
 
 const USE_CASES = ["Coding", "Writing", "Data", "Research", "Mixed"] as const
@@ -143,34 +170,61 @@ export default function DashboardClient() {
     return `Missing: ${reasons.join(", ")}`
   }
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+  const handleSubmit = async (
+      e: FormEvent<HTMLFormElement>
+    ) => {
+      e.preventDefault()
     
-    if (!canSubmit) return
+      if (!canSubmit) return
     
-    try {
-      setError(null)
-      setLoading(true)
-    
-      const input = prepareAudit()
-    
-      console.log("STEP 1 - sending input")
-    
-      const { id } = await createAudit(input)
-    
-      console.log("STEP 2 - audit created", id)
-    
-      router.push(`/report/${id}`)
-    
-      console.log("STEP 3 - navigation triggered")
-    
-    } catch (err) {
-      console.error(err)
-      setError((err as Error)?.message ?? "Something went wrong")
-    } finally {
-      setLoading(false)
+      try {
+        setError(null)
+        setLoading(true)
+      
+        const input = prepareAudit()
+      
+        console.log(
+          "🟡 STEP 1 - sending input",
+          input
+        )
+      
+        const response =
+          await createAudit(input)
+      
+        console.log(
+          "🟢 STEP 2 - createAudit response",
+          response
+        )
+      
+        if (!response?.id) {
+          throw new Error(
+            "Audit ID missing from response"
+          )
+        }
+      
+        const reportUrl = `/report/${response.id}`
+      
+        console.log(
+          "🟢 STEP 3 - navigating to",
+          reportUrl
+        )
+      
+        router.push(reportUrl)
+      } catch (err) {
+        console.error(
+          "🔴 SUBMIT FAILED:",
+          err
+        )
+      
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Something went wrong"
+        )
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">

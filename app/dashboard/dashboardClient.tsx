@@ -15,9 +15,6 @@ import {
 import { AuditInput } from "@/types/audit"
 import { runAudit, storeAudit } from "@/lib/audit-engine"
 import { generateSummary } from "@/lib/ai-summary"
-import { prisma } from "@/lib/prisma"
-
-// ─── Static data ───────────────────────────────────────────────────────────────
 
 const TOOLS: ReadonlyArray<{ id: string; name: string; plans: readonly string[] }> = [
   { id: "cursor",         name: "Cursor",               plans: ["Hobby", "Pro", "Business", "Enterprise"] },
@@ -79,11 +76,10 @@ export default function DashboardClient() {
 
   const handleSubmit = async(e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-
     try {
       setLoading(true)
       const input = prepareAudit()
-      const result = runAudit(input);
+      const result = await runAudit(input);
       const summary = await generateSummary(input,result);
       if(!summary){
         throw new Error("Summary not found !")

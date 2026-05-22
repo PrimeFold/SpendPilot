@@ -34,7 +34,7 @@ export function ReportClient({ report }: ReportClientProps) {
               Review the audit summary, savings, and recommendations for the selected report.
             </p>
           </div>
-          <Link href="/audit" className="w-full max-w-xs lg:w-auto">
+          <Link href="/dashboard" className="w-full max-w-xs lg:w-auto">
             <Button variant="secondary" className="w-full lg:w-auto">
               Return to audit
             </Button>

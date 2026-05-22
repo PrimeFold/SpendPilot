@@ -1,8 +1,10 @@
+
+"use server"
 import { AuditInput,AuditResult } from "@/types/audit";
 import { Prisma } from "@/generated/prisma/client";
 import { prisma } from "./prisma";
 
-export function runAudit(input:AuditInput):AuditResult{
+export async function runAudit(input:AuditInput):Promise<AuditResult>{
   let monthlySavings = 0;
   const recommendations = [];
 
@@ -33,7 +35,7 @@ export async function storeAudit(
   summary: string,
   result?: AuditResult,
 ) {
-  const auditResult = result ?? runAudit(input)
+  const auditResult = result ?? await runAudit(input)
   const slug = `audit-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 
   try {

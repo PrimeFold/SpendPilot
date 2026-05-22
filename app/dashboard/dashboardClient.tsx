@@ -76,11 +76,24 @@ export default function DashboardClient() {
     }
   }
 
+  const validationMessage = () => {
+    if (canSubmit) return null
+    const reasons: string[] = []
+    if (!hasValidTeamSize) reasons.push("team size must be ≥ 1")
+    if (useCase === "") reasons.push("select a use case")
+    if (!hasCompleteToolEntry) reasons.push("add a tool, plan, seats and spend")
+    return `Missing: ${reasons.join(", ")}`
+  }
+
 
   const handleSubmit = async(e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
 
+    console.log("submit clicked", { canSubmit })
+
     if (!canSubmit) {
+      // show quick feedback in console and UI
+      setError(validationMessage())
       return
     }
 
@@ -214,6 +227,9 @@ export default function DashboardClient() {
                 Run audit →
               </Button>
             </div>
+            {!canSubmit && (
+              <p className="mt-2 text-sm text-red-600">{validationMessage()}</p>
+            )}
           </form>
 
           

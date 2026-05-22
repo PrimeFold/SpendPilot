@@ -1,3 +1,4 @@
+"use server"
 import { AuditInput, AuditResult } from "@/types/audit"
 import { openrouter } from "./openai"
 

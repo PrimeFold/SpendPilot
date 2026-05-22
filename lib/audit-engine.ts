@@ -350,10 +350,7 @@ export async function storeAudit(
 
     return {
       success: false,
-      message:
-        error instanceof Error
-          ? error.message
-          : "Unknown error occurred",
+      message: "Internal Server error"
     }
   }
 }

@@ -17,6 +17,8 @@ import {
 import { AuditInput } from "@/types/audit"
 import { createAudit } from "@/lib/createAudit"
 import { generateAndUpdateSummary } from "@/lib/generateUpdateAndSummary"
+import { generateSummary } from "@/lib/ai-summary"
+import { runAudit, storeAudit } from "@/lib/audit-engine"
 
 
 const TOOLS: ReadonlyArray<{ id: string; name: string; plans: readonly string[] }> = [
@@ -85,7 +87,7 @@ export default function DashboardClient() {
     e.preventDefault()
 
     if (!canSubmit) {
-      setError(validationMessage())
+      setError("Fill all fields properly")
       return
     }
 
@@ -93,26 +95,45 @@ export default function DashboardClient() {
       setError(null)
       setLoading(true)
 
+      console.log("STEP 1")
+
       const input = prepareAudit()
 
-     
-      const res = await createAudit(input)
+      const result = await runAudit(input)
 
-      setSubmitted(true)
+      console.log("STEP 2")
 
-      console.log("INPUT READY", input)
+      const summary = await generateSummary(input, result)
 
-      console.log("CREATE AUDIT RESPONSE", res)
+      console.log("STEP 3")
+      if(!summary){
+        throw new Error("Summary not found")
+      }
+      const stored = await storeAudit(input, summary, result)
 
-      router.push(`/report/${res.id}`)
+      console.log("STEP 4", stored)
 
-     
-      generateAndUpdateSummary(res.id, input, res.result).catch(err => {
-        console.error("Summary generation failed:", err)
+      const auditId = stored.data?.id
+
+      if (!auditId) {
+        throw new Error("Audit ID missing")
+      }
+
+      const destination = `/report/${auditId}`
+
+      console.log("STEP 5 - PUSH", destination)
+
+      router.push(destination)
+
+      console.log("STEP 6 - PUSH DONE")
+
+      // background task (DO NOT block flow)
+      generateAndUpdateSummary(auditId, input, result).catch(err => {
+        console.error("Background summary failed:", err)
       })
 
     } catch (err) {
-      console.error(err)
+      console.error("HANDLE SUBMIT FAILED:", err)
       setError((err as Error)?.message ?? "Internal Server Error")
     } finally {
       setLoading(false)

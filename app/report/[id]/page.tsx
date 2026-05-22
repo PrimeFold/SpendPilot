@@ -57,13 +57,13 @@ export default async function ReportPage({ params }: { params: { id: string } })
 
     return <ReportClient report={report} />
   } catch (err) {
-    console.error("\n💥 REPORT PAGE CRASHED:")
+    console.error("\n💥 REPORT PAGE CRASHED FULL ERROR:")
     console.error(err)
 
-    return (
-      <div style={{ color: "red" }}>
-        Report page crashed. Check server logs.
-      </div>
-    )
+    console.error("\n💥 STRINGIFIED ERROR:")
+    console.error(JSON.stringify(err, Object.getOwnPropertyNames(err), 2))
+
+    throw err
+  
   }
 }

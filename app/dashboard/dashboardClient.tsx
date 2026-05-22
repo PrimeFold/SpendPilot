@@ -96,14 +96,18 @@ export default function DashboardClient() {
       const input = prepareAudit()
 
      
-      const { id, result } = await createAudit(input)
+      const res = await createAudit(input)
 
       setSubmitted(true)
 
-      router.push(`/report/${id}`)
+      console.log("INPUT READY", input)
+
+      console.log("CREATE AUDIT RESPONSE", res)
+
+      router.push(`/report/${res.id}`)
 
      
-      generateAndUpdateSummary(id, input, result).catch(err => {
+      generateAndUpdateSummary(res.id, input, res.result).catch(err => {
         console.error("Summary generation failed:", err)
       })
 

@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,6 +33,7 @@ const USE_CASES = ["Coding", "Writing", "Data", "Research", "Mixed"] as const
 type ToolId = (typeof TOOLS)[number]["id"]
 
 export default function DashboardClient() {
+  const router = useRouter()
   const [loading,setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [teamSize, setTeamSize] = useState(1)
@@ -76,28 +78,33 @@ export default function DashboardClient() {
 
   const handleSubmit = async(e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    try {
-      setLoading(true)
-      const input = prepareAudit()
-      const result = await runAudit(input);
-      const summary = await generateSummary(input,result);
-      if(!summary){
-        throw new Error("Summary not found !")
-      }
-      const stored = await storeAudit(input,summary,result)
-      if(!stored.success){
-        throw new Error(stored.message);
-      }
 
-    } catch (error) {
-      throw new Error("Internal Server Error")
-    }
-
-    if (!canSubmit){
+    if (!canSubmit) {
       return
     }
 
-    setSubmitted(true)
+    try {
+      setLoading(true)
+      const input = prepareAudit()
+      const result = await runAudit(input)
+      const summary = await generateSummary(input, result)
+      if (!summary) {
+        throw new Error("Summary not found !")
+      }
+
+      const stored = await storeAudit(input, summary, result)
+      if (!stored.success || !stored.data) {
+        throw new Error(stored.message)
+      }
+
+      router.push(`/report/${stored.data.id}`)
+      setSubmitted(true)
+    } catch (error) {
+      console.error(error)
+      throw new Error("Internal Server Error")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

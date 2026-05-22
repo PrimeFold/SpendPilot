@@ -18,6 +18,5 @@ export interface AuditResult {
   optimizedSpend: number
   monthlySavings: number
   annualSavings: number
-  recommendations: AuditRecommendation[]
 }
 

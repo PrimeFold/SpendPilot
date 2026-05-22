@@ -3,17 +3,17 @@
 import { prisma } from "./prisma"
 import { AuditInput, AuditResult } from "@/types/audit"
 
-type AuditRule = (input: AuditInput) => AuditRecommendation[]
-
 export type AuditRecommendation = {
   title: string
   description: string
   monthlySavings: number
 }
 
+type AuditRule = (input: AuditInput) => AuditRecommendation[]
+
 const providerRules: Record<string, Record<string, AuditRule>> = {
   chatgpt: {
-    Team: (input) => {
+    team: (input) => {
       const recs: AuditRecommendation[] = []
 
       if (input.seats > input.teamSize) {
@@ -30,11 +30,13 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
 }
 
 function computeResult(input: AuditInput): AuditResult {
+  const monthlySavings = input.monthlySpend * 0.2
+
   return {
     currentSpend: input.monthlySpend,
-    optimizedSpend: input.monthlySpend * 0.8,
-    monthlySavings: input.monthlySpend * 0.2,
-    annualSavings: input.monthlySpend * 0.2 * 12,
+    optimizedSpend: input.monthlySpend - monthlySavings,
+    monthlySavings,
+    annualSavings: monthlySavings * 12,
   }
 }
 
@@ -43,7 +45,7 @@ export async function runAudit(input: AuditInput): Promise<{
   recommendations: AuditRecommendation[]
 }> {
   const provider = providerRules[input.toolId]
-  const rule = provider?.[input.plan]
+  const rule = provider?.[input.plan.toLowerCase()]
 
   const result = computeResult(input)
 
@@ -80,7 +82,7 @@ export async function storeAudit(
 
   if (recommendations.length > 0) {
     await prisma.recommendation.createMany({
-      data: recommendations.map(r => ({
+      data: recommendations.map((r) => ({
         auditId: audit.id,
         title: r.title,
         description: r.description,

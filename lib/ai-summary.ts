@@ -3,6 +3,12 @@
 import { AuditInput, AuditResult } from "@/types/audit"
 import { openrouter } from "./openai"
 
+type Recommendation = {
+  title: string
+  description: string
+  monthlySavings: number
+}
+
 function fallbackSummary(result: AuditResult) {
   if (result.monthlySavings <= 0) {
     return `No major optimization opportunities were identified in the current AI tooling setup. Existing subscriptions appear reasonably aligned with the team's usage and scale.`
@@ -13,7 +19,8 @@ function fallbackSummary(result: AuditResult) {
 
 export async function generateSummary(
   input: AuditInput,
-  result: AuditResult
+  result: AuditResult,
+  recommendations: Recommendation[] = []
 ): Promise<string> {
   try {
     const prompt = `
@@ -37,9 +44,11 @@ AUDIT RESULTS:
 - Estimated annual savings: $${result.annualSavings}
 
 RECOMMENDATIONS:
-${result.recommendations
-  .map((r) => `- ${r.title}: ${r.description}`)
-  .join("\n")}
+${
+  recommendations.length > 0
+    ? recommendations.map(r => `- ${r.title}: ${r.description}`).join("\n")
+    : "No specific recommendations generated."
+}
 
 INSTRUCTIONS:
 - Keep response under 120 words
@@ -51,12 +60,7 @@ INSTRUCTIONS:
 
     const completion = await openrouter.chat.completions.create({
       model: "meta-llama/llama-3.3-70b-instruct:free",
-      messages: [
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
+      messages: [{ role: "user", content: prompt }],
     })
 
     const summary = completion.choices?.[0]?.message?.content

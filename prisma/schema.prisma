@@ -13,7 +13,6 @@ model Audit {
   id String @id @default(cuid())
   slug String @unique
 
-  // user input (fully structured, no JSON)
   toolId String
   plan String
   teamSize Int

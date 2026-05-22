@@ -95,10 +95,10 @@ export default function DashboardClient() {
     
      const input = prepareAudit()
     
-     // STEP 1: audit
+     
      const { result, recommendations } = await runAudit(input)
     
-     // STEP 2: store immediately (fast path)
+     
      const audit = await storeAudit(
        input,
        result,
@@ -108,11 +108,11 @@ export default function DashboardClient() {
     
      const auditId = audit.id
     
-     // STEP 3: navigate immediately
+    
      router.push(`/report/${auditId}`)
     
-     // STEP 4: background summary (non-blocking)
-     generateSummary(input, result).then(async (summary) => {
+    
+     generateSummary(input, result,recommendations).then(async (summary) => {
        await prisma.audit.update({
          where: { id: auditId },
          data: { summary },

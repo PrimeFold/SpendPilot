@@ -11,11 +11,11 @@ interface ReportPageProps {
 export default async function ReportPage({
   params,
 }: ReportPageProps) {
-  console.log("🟡 [ReportPage] Request received")
+  
 
   const { id } = await params
 
-  console.log("🟡 [ReportPage] Audit ID:", id)
+  
 
   const audit = await prisma.audit.findUnique({
     where: {
@@ -26,10 +26,10 @@ export default async function ReportPage({
     },
   })
 
-  console.log("🟢 [ReportPage] Audit from DB:", audit)
+  
 
   if (!audit) {
-    console.log("🔴 [ReportPage] Audit not found")
+    
     notFound()
   }
 
@@ -62,7 +62,7 @@ export default async function ReportPage({
         : new Date().toISOString(),
   }
 
-  console.log("🔵 [ReportPage] Final report object:", report)
+  
 
   return <ReportClient report={report} />
 }

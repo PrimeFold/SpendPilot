@@ -310,7 +310,7 @@ export async function runAudit(input: AuditInput): Promise<{ result: AuditResult
 
   
   if (input.toolId.toLowerCase() === 'cursor' && input.useCase.toLowerCase() === 'writing') {
-     if (seatPrice > 20) {
+     if (seatPrice >= 20) {
         const mismatchSavings = (seatPrice - 20) * input.seats;
         recommendations.push({
           title: "Realign Tooling with Primary Use Case",

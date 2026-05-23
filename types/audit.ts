@@ -22,7 +22,9 @@ export type PlanId =
   | "free" | "hobby" | "individual" | "plus" 
   | "pro" | "team" | "business" 
   | "max" | "ultra" 
-  | "enterprise" | "api";
+  | "enterprise" | "api"
+  | "starter" | "growth" | "scale";
+  
 
 export interface AuditInput {
   toolId: ToolId;

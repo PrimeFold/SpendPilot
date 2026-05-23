@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { AuditResult } from "@/types/audit"
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { AuditResult } from "@/types/audit"
 
 const router = useRouter();
 type Recommendation = {
@@ -35,7 +35,7 @@ interface ReportClientProps {
 }
 
 export function ReportClient({ report }: ReportClientProps) {
-  
+  const router = useRouter();
   const {
     id,
     slug,
@@ -51,14 +51,6 @@ export function ReportClient({ report }: ReportClientProps) {
     createdAt,
   } = report
 
-  const createdDate = createdAt
-    ? new Date(createdAt).toLocaleString()
-    : "Unknown"
-
-  const safeRecommendations = Array.isArray(recommendations)
-    ? recommendations
-    : []
-
   useEffect(() => {
   if (summary) return
 
@@ -68,6 +60,15 @@ export function ReportClient({ report }: ReportClientProps) {
 
   return () => clearInterval(interval)
   }, [summary, router])
+  
+  const createdDate = createdAt
+    ? new Date(createdAt).toLocaleString()
+    : "Unknown"
+
+  const safeRecommendations = Array.isArray(recommendations)
+    ? recommendations
+    : []
+
 
   return (
     <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -152,7 +153,7 @@ export function ReportClient({ report }: ReportClientProps) {
               <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
                 AI summary
               </p>
-                          
+
               {summary ? (
                 <p className="text-sm leading-6 text-foreground">
                   {summary}

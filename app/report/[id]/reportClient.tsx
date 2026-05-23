@@ -34,6 +34,7 @@ interface ReportClientProps {
 }
 
 export function ReportClient({ report }: ReportClientProps) {
+  console.log("REPORT DATA:", report)
   const router = useRouter();
   const {
     id,
@@ -67,186 +68,32 @@ export function ReportClient({ report }: ReportClientProps) {
     ? recommendations
     : []
 
+  const safeNumber = (value: unknown) => {
+  const parsed = Number(value)
+
+  if (!Number.isFinite(parsed)) {
+    return 0
+  }
+
+  const safeResult = {
+    currentSpend: safeNumber(result?.currentSpend),
+    optimizedSpend: safeNumber(result?.optimizedSpend),
+    monthlySavings: safeNumber(result?.monthlySavings),
+    annualSavings: safeNumber(result?.annualSavings),
+  }
+  const safeMonthlySpend = safeNumber(monthlySpend)
+
+  return parsed
+  
+}
 
   return (
-    <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
-      <div className="rounded-[2rem] border border-border bg-card p-8 shadow-sm shadow-slate-950/10">
+  <div className="p-10 text-white">
+    <h1>REPORT PAGE WORKS</h1>
 
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-primary">
-              Audit report
-            </p>
-
-            <h1 className="mt-3 text-3xl font-semibold text-foreground sm:text-4xl">
-              Audit details
-            </h1>
-
-            <p className="mt-4 text-sm leading-7 text-muted-foreground">
-              Review the audit summary, savings, and recommendations for the selected report.
-            </p>
-          </div>
-
-          <Link href="/dashboard" className="w-full max-w-xs lg:w-auto">
-            <Button variant="secondary" className="w-full lg:w-auto">
-              Return to audit
-            </Button>
-          </Link>
-        </div>
-
-        <div className="mt-10 grid gap-6 lg:grid-cols-[1.5fr_1fr]">
-
-          {/* LEFT */}
-          <section className="space-y-6 rounded-3xl border border-border bg-card p-6">
-
-            <div className="flex flex-col gap-2">
-              <p className="text-xs uppercase tracking-[0.28em] text-muted-foreground">
-                Report metadata
-              </p>
-
-              <p className="text-sm text-foreground">ID: {id}</p>
-
-              <p className="text-sm text-foreground">
-                Created: {createdDate}
-              </p>
-            </div>
-
-            {/* TOOL INFO */}
-            <div className="space-y-3 rounded-3xl border border-border bg-background p-5">
-              <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                Tool context
-              </p>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  { label: "Tool", value: toolId },
-                  { label: "Plan", value: plan },
-                  { label: "Seats", value: seats },
-                  { label: "Team size", value: teamSize },
-                  { label: "Use case", value: useCase },
-                  { label: "Monthly spend", value: `$${monthlySpend.toLocaleString()}` },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="rounded-2xl border border-border bg-card p-4"
-                  >
-                    <p className="text-[11px] uppercase tracking-[0.28em] text-muted-foreground">
-                      {item.label}
-                    </p>
-                    <p className="mt-2 text-sm text-foreground">
-                      {item.value}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* SUMMARY */}
-            <div className="space-y-3 rounded-3xl border border-border bg-background p-5">
-              <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                AI summary
-              </p>
-
-              {summary ? (
-                <p className="text-sm leading-6 text-foreground">
-                  {summary}
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-3 w-3 animate-pulse rounded-full bg-primary" />
-              
-                    <p className="text-sm text-muted-foreground">
-                      AI is generating your executive summary...
-                    </p>
-                  </div>
-              
-                  <div className="space-y-2">
-                    <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
-                    <div className="h-4 w-[92%] animate-pulse rounded-full bg-muted" />
-                    <div className="h-4 w-[85%] animate-pulse rounded-full bg-muted" />
-                  </div>
-                </div>
-              )}
-            </div>
-
-          </section>
-
-          {/* RIGHT */}
-          <section className="space-y-6 rounded-3xl border border-border bg-card p-6">
-
-            <div>
-              <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                Savings overview
-              </p>
-
-              <p className="mt-3 text-3xl font-semibold text-foreground">
-                ${result.monthlySavings.toLocaleString()}
-              </p>
-
-              <p className="text-sm text-muted-foreground">
-                Estimated monthly savings
-              </p>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              {[
-                { label: "Current spend", value: `$${result.currentSpend.toLocaleString()}` },
-                { label: "Optimized spend", value: `$${result.optimizedSpend.toLocaleString()}` },
-                { label: "Annual savings", value: `$${result.annualSavings.toLocaleString()}` },
-              ].map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl border border-border bg-background p-4"
-                >
-                  <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                    {item.label}
-                  </p>
-                  <p className="mt-2 text-lg font-medium text-foreground">
-                    {item.value}
-                  </p>
-                </div>
-              ))}
-            </div>
-
-            {/* RECOMMENDATIONS */}
-            <div className="space-y-4 rounded-3xl border border-border bg-background p-5">
-              <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                Recommendations
-              </p>
-
-              {safeRecommendations.length > 0 ? (
-                <div className="space-y-3">
-                  {safeRecommendations.map((item, index) => (
-                    <div
-                      key={index}
-                      className="rounded-3xl border border-border bg-card p-4"
-                    >
-                      <p className="text-sm font-semibold text-foreground">
-                        {item.title}
-                      </p>
-
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        {item.description}
-                      </p>
-
-                      <p className="mt-3 text-xs uppercase tracking-[0.3em] text-muted-foreground">
-                        Estimated savings: ${item.monthlySavings}/mo
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">
-                  No recommendations were generated for this audit.
-                </p>
-              )}
-            </div>
-
-          </section>
-
-        </div>
-      </div>
-    </main>
-  )
+    <pre>
+      {JSON.stringify(report, null, 2)}
+    </pre>
+  </div>
+)
 }

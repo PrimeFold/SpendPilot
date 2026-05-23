@@ -15,7 +15,6 @@ type Recommendation = {
 
 interface AuditReport {
   id: string
-  slug?: string | null
   toolId: string
   plan: string
   teamSize: number
@@ -38,7 +37,6 @@ export function ReportClient({ report }: ReportClientProps) {
   const router = useRouter();
   const {
     id,
-    slug,
     toolId,
     plan,
     teamSize,
@@ -60,7 +58,7 @@ export function ReportClient({ report }: ReportClientProps) {
 
   return () => clearInterval(interval)
   }, [summary, router])
-  
+
   const createdDate = createdAt
     ? new Date(createdAt).toLocaleString()
     : "Unknown"
@@ -107,11 +105,6 @@ export function ReportClient({ report }: ReportClientProps) {
               </p>
 
               <p className="text-sm text-foreground">ID: {id}</p>
-
-              {/* SAFE FALLBACK */}
-              <p className="text-sm text-foreground">
-                Slug: {slug ?? "N/A"}
-              </p>
 
               <p className="text-sm text-foreground">
                 Created: {createdDate}

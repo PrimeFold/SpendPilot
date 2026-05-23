@@ -21,37 +21,37 @@ const TOOLS = [
   {
     id: "cursor",
     name: "Cursor",
-    plans: ["Free", "Pro", "Business"],
+    plans: ["free", "pro", "business"],
   },
 
   {
     id: "github_copilot",
     name: "GitHub Copilot",
-    plans: ["Individual", "Business", "Enterprise"],
+    plans: ["individual", "business", "enterprise"],
   },
 
   {
     id: "claude",
     name: "Claude (Anthropic)",
-    plans: ["Free", "Pro", "Team", "Max"],
+    plans: ["free", "pro", "team", "max"],
   },
 
   {
     id: "chatgpt",
     name: "ChatGPT (OpenAI)",
-    plans: ["Free", "Plus", "Team", "Enterprise", "Pro"],
+    plans: ["free", "plus", "team", "enterprise", "pro"],
   },
 
   {
     id: "gemini",
     name: "Gemini (Google)",
-    plans: ["Free", "Pro", "Ultra"],
+    plans: ["free", "pro", "ultra"],
   },
 
   {
     id: "windsurf",
     name: "Windsurf",
-    plans: ["Free", "Pro", "Teams"],
+    plans: ["free", "pro", "teams"],
   },
 ] as const
 
@@ -284,7 +284,7 @@ export default function DashboardClient() {
               <SelectContent>
                 {selectedTool?.plans.map(p => (
                   <SelectItem key={p} value={p}>
-                    {p}
+                    {p.charAt(0).toUpperCase() + p.slice(1)}
                   </SelectItem>
                 ))}
               </SelectContent>

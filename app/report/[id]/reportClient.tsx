@@ -3,7 +3,10 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AuditResult } from "@/types/audit"
+import { useEffect } from "react"
+import { useRouter } from "next/navigation"
 
+const router = useRouter();
 type Recommendation = {
   title: string
   description: string
@@ -32,6 +35,7 @@ interface ReportClientProps {
 }
 
 export function ReportClient({ report }: ReportClientProps) {
+  
   const {
     id,
     slug,
@@ -54,6 +58,16 @@ export function ReportClient({ report }: ReportClientProps) {
   const safeRecommendations = Array.isArray(recommendations)
     ? recommendations
     : []
+
+  useEffect(() => {
+  if (summary) return
+
+  const interval = setInterval(() => {
+    router.refresh()
+  }, 4000)
+
+  return () => clearInterval(interval)
+  }, [summary, router])
 
   return (
     <main className="container mx-auto py-12 px-4 sm:px-6 lg:px-8">
@@ -138,10 +152,28 @@ export function ReportClient({ report }: ReportClientProps) {
               <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
                 AI summary
               </p>
-
-              <p className="text-sm leading-6 text-foreground">
-                {summary ?? "No AI summary is available for this report yet."}
-              </p>
+                          
+              {summary ? (
+                <p className="text-sm leading-6 text-foreground">
+                  {summary}
+                </p>
+              ) : (
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-3 w-3 animate-pulse rounded-full bg-primary" />
+              
+                    <p className="text-sm text-muted-foreground">
+                      AI is generating your executive summary...
+                    </p>
+                  </div>
+              
+                  <div className="space-y-2">
+                    <div className="h-4 w-full animate-pulse rounded-full bg-muted" />
+                    <div className="h-4 w-[92%] animate-pulse rounded-full bg-muted" />
+                    <div className="h-4 w-[85%] animate-pulse rounded-full bg-muted" />
+                  </div>
+                </div>
+              )}
             </div>
 
           </section>

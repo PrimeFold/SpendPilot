@@ -383,32 +383,64 @@ export async function storeAudit(
   recommendations: AuditRecommendation[],
   summary?: string
 ) {
+  console.log(
+    "🟡 recommendations before insert:",
+    recommendations
+  )
+
   const audit = await prisma.audit.create({
     data: {
       toolId: input.toolId,
       plan: input.plan,
+
       teamSize: input.teamSize,
       seats: input.seats,
+
       monthlySpend: result.currentSpend,
+
       useCase: input.useCase,
+
       currentSpend: result.currentSpend,
       optimizedSpend: result.optimizedSpend,
       monthlySavings: result.monthlySavings,
       annualSavings: result.annualSavings,
+
       summary,
     },
   })
 
+  console.log(
+    "🟢 audit created:",
+    audit.id
+  )
+
   if (recommendations.length > 0) {
-    await prisma.recommendation.createMany({
-      data: recommendations.map((r) => ({
-        auditId: audit.id,
-        title: r.title,
-        description: r.description,
-        monthlySavings: r.monthlySavings,
-      })),
-    })
+    try {
+      await prisma.recommendation.createMany({
+        data: recommendations.map((r) => ({
+          auditId: audit.id,
+          title: r.title,
+          description: r.description,
+          monthlySavings: r.monthlySavings,
+        })),
+      })
+
+      console.log(
+        "🟢 recommendations inserted"
+      )
+    } catch (error) {
+      console.error(
+        "🔴 recommendation insert failed:",
+        error
+      )
+
+      throw error
+    }
   }
+
+  console.log(
+    "🟢 storeAudit completed"
+  )
 
   return audit
 }

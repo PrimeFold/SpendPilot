@@ -17,9 +17,8 @@ export default async function ReportPage({ params }: ReportPageProps) {
 
   if (!audit) notFound();
 
-  // 2. Format the data for the Client Component
+  
   const report = {
-    // Copy the basic fields directly
     id: audit.id,
     toolId: audit.toolId,
     plan: audit.plan,

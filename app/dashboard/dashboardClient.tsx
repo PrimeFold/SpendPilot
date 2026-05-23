@@ -1,6 +1,6 @@
 "use client"
-import { useEffect } from "react"
-import { FormEvent, useState } from "react"
+
+import { useEffect, FormEvent, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,9 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-import { AuditInput } from "@/types/audit"
+import { AuditInput, ToolId, PlanId, UseCase } from "@/types/audit"
 import { createAudit } from "@/lib/createAudit"
-
+import { AI_PRICING } from "@/lib/ai-pricing"
 
 const TOOLS = [
   {
@@ -23,139 +23,86 @@ const TOOLS = [
     name: "Cursor",
     plans: ["free", "pro", "business"],
   },
-
   {
     id: "github_copilot",
     name: "GitHub Copilot",
     plans: ["individual", "business", "enterprise"],
   },
-
   {
     id: "claude",
     name: "Claude (Anthropic)",
     plans: ["free", "pro", "team", "max"],
   },
-
   {
     id: "chatgpt",
     name: "ChatGPT (OpenAI)",
     plans: ["free", "plus", "team", "enterprise", "pro"],
   },
-
   {
     id: "gemini",
     name: "Gemini (Google)",
     plans: ["free", "pro", "ultra"],
   },
-
   {
     id: "windsurf",
     name: "Windsurf",
     plans: ["free", "pro", "teams"],
   },
+  {
+    id: "openai_api",
+    name: "OpenAI API Direct",
+    plans: ["starter", "growth", "scale"],
+  },
+  {
+    id: "anthropic_api",
+    name: "Anthropic API Direct",
+    plans: ["starter", "growth", "scale"],
+  },
 ] as const
 
 const USE_CASES = ["Coding", "Writing", "Data", "Research", "Mixed"] as const
-const AI_PRICING: Record<string, Record<string, number>> = {
-  cursor: {
-    free: 0,
-    pro: 20,
-    business: 40,
-  },
-
-  github_copilot: {
-    individual: 10,
-    business: 19,
-    enterprise: 39,
-  },
-
-  claude: {
-    free: 0,
-    pro: 20,
-    team: 25,
-    max: 100,
-  },
-
-  chatgpt: {
-    free: 0,
-    plus: 20,
-    team: 25,
-    enterprise: 60,
-    pro: 100,
-  },
-
-  gemini: {
-    free: 0,
-    pro: 20,
-    ultra: 250,
-  },
-
-  windsurf: {
-    free: 0,
-    pro: 15,
-    teams: 30,
-  },
-
-  openai_api: {
-    starter: 25,
-    growth: 100,
-    scale: 500,
-  },
-
-  anthropic_api: {
-    starter: 30,
-    growth: 120,
-    scale: 600,
-  },
-}
-
-type ToolId = (typeof TOOLS)[number]["id"]
 
 export default function DashboardClient() {
   const router = useRouter()
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [teamSize, setTeamSize] = useState(1)
-  const [useCase, setUseCase] = useState("")
+  const [teamSize, setTeamSize] = useState<number>(1)
+  const [useCase, setUseCase] = useState<UseCase | "">("")
   const [toolId, setToolId] = useState<ToolId | "">("")
-  const [plan, setPlan] = useState("")
-  const [seats, setSeats] = useState(1)
-  const [monthlySpend, setMonthlySpend] = useState(0)
+  const [plan, setPlan] = useState<PlanId | "">("")
+  const [seats, setSeats] = useState<number>(1)
+  const [monthlySpend, setMonthlySpend] = useState<number>(0)
 
+  // Recompute cost on change
   useEffect(() => {
-  if (!toolId || !plan) {
-    setMonthlySpend(0)
-    return
-  }
+    if (!toolId || !plan) {
+      setMonthlySpend(0)
+      return
+    }
+    const seatPrice = AI_PRICING[toolId]?.[plan] ?? 0
+    setMonthlySpend(seatPrice * seats)
+  }, [toolId, plan, seats])
 
-  const normalizedPlan = plan.toLowerCase()
-
-  const seatPrice = AI_PRICING[toolId]?.[normalizedPlan] ?? 0
-
-  setMonthlySpend(seatPrice * seats)
-}, [toolId, plan, seats])
-  
   const selectedTool = TOOLS.find(t => t.id === toolId)
 
   const hasValidTeamSize = teamSize > 0
   const hasValidSeats = seats > 0
-  
+  const hasCompleteToolEntry = Boolean(toolId && plan && hasValidSeats)
 
+  const canSubmit = hasValidTeamSize && useCase !== "" && hasCompleteToolEntry
 
-  const hasCompleteToolEntry =Boolean(toolId && plan && hasValidSeats);
-
-  const canSubmit =
-    hasValidTeamSize && useCase !== "" && hasCompleteToolEntry
-
-  const prepareAudit = (): AuditInput => ({
-    toolId: toolId.trim(),
-    seats,
-    teamSize,
-    useCase: useCase.trim(),
-    monthlySpend,
-    plan: plan.trim(),
-  })
+  const prepareAudit = (): AuditInput => {
+    if (!canSubmit) throw new Error("Form validation failed")
+    return {
+      toolId: toolId as ToolId,
+      plan: plan as PlanId,
+      useCase: useCase as UseCase,
+      seats,
+      teamSize,
+      monthlySpend,
+    }
+  }
 
   const validationMessage = () => {
     if (canSubmit) return null
@@ -168,76 +115,41 @@ export default function DashboardClient() {
     return `Missing: ${reasons.join(", ")}`
   }
 
-  const handleSubmit = async (
-      e: FormEvent<HTMLFormElement>
-    ) => {
-      e.preventDefault()
-    
-      if (!canSubmit) return
-    
-      try {
-        setError(null)
-        setLoading(true)
-      
-        const input = prepareAudit()
-      
-        console.log(
-          "🟡 STEP 1 - sending input",
-          input
-        )
-      
-        const response =
-          await createAudit(input)
-      
-        console.log(
-          "🟢 STEP 2 - createAudit response",
-          response
-        )
-      
-        if (!response?.id) {
-          throw new Error(
-            "Audit ID missing from response"
-          )
-        }
-      
-        const reportUrl = `/report/${response.id}`
-      
-        console.log(
-          "🟢 STEP 3 - navigating to",
-          reportUrl
-        )
-      
-        router.push(reportUrl)
-      } catch (err) {
-        console.error(
-          "🔴 SUBMIT FAILED:",
-          err
-        )
-      
-        setError(
-          err instanceof Error
-            ? err.message
-            : "Something went wrong"
-        )
-      } finally {
-        setLoading(false)
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!canSubmit) return
+
+    try {
+      setError(null)
+      setLoading(true)
+
+      const input = prepareAudit()
+      const response = await createAudit(input)
+
+      if (!response?.id) {
+        throw new Error("Audit ID missing from response")
       }
+
+      router.push(`/report/${response.id}`)
+    } catch (err) {
+      console.error("🔴 SUBMIT FAILED:", err)
+      setError(err instanceof Error ? err.message : "Something went wrong")
+    } finally {
+      setLoading(false)
     }
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
       <div className="mx-auto max-w-3xl">
-
         <form onSubmit={handleSubmit} className="space-y-4">
-
-          {error && (
-            <div className="text-red-600 text-sm">{error}</div>
-          )}
+          {error && <div className="text-red-600 text-sm">{error}</div>}
 
           <div>
             <Label>Team Size</Label>
             <Input
               type="number"
+              min={1}
               value={teamSize}
               onChange={e => setTeamSize(Number(e.target.value))}
             />
@@ -245,13 +157,13 @@ export default function DashboardClient() {
 
           <div>
             <Label>Use Case</Label>
-            <Select value={useCase} onValueChange={setUseCase}>
+            <Select value={useCase} onValueChange={(v) => setUseCase(v as UseCase)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select use case" />
               </SelectTrigger>
               <SelectContent>
                 {USE_CASES.map(u => (
-                  <SelectItem key={u} value={u.toLowerCase()}>
+                  <SelectItem key={u} value={u.toLowerCase() as UseCase}>
                     {u}
                   </SelectItem>
                 ))}
@@ -261,7 +173,13 @@ export default function DashboardClient() {
 
           <div>
             <Label>Tool</Label>
-            <Select value={toolId} onValueChange={v => setToolId(v as ToolId)}>
+            <Select 
+              value={toolId} 
+              onValueChange={(v) => {
+                setToolId(v as ToolId)
+                setPlan("") 
+              }}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select tool" />
               </SelectTrigger>
@@ -277,7 +195,7 @@ export default function DashboardClient() {
 
           <div>
             <Label>Plan</Label>
-            <Select value={plan} onValueChange={setPlan}>
+            <Select value={plan} onValueChange={(v) => setPlan(v as PlanId)} disabled={!toolId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select plan" />
               </SelectTrigger>
@@ -295,14 +213,14 @@ export default function DashboardClient() {
             <Label>Seats</Label>
             <Input
               type="number"
+              min={1}
               value={seats}
               onChange={e => setSeats(Number(e.target.value))}
             />
           </div>
 
-         <div>
+          <div>
             <Label>Estimated Monthly Spend</Label>
-
             <div className="rounded-md border bg-muted/40 px-3 py-2 text-sm">
               ${monthlySpend.toLocaleString()}
             </div>
@@ -311,7 +229,6 @@ export default function DashboardClient() {
           <Button type="submit" disabled={!canSubmit || loading}>
             {loading ? "Running..." : "Run Audit"}
           </Button>
-
         </form>
 
         {!canSubmit && (
@@ -319,7 +236,6 @@ export default function DashboardClient() {
             {validationMessage()}
           </p>
         )}
-
       </div>
     </div>
   )

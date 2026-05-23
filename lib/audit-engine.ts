@@ -18,7 +18,6 @@ type AuditRule = (
 const providerRules: Record<string, Record<string, AuditRule>> = {
   chatgpt: {
     free: () => [],
-
     plus: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
@@ -28,38 +27,26 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
           monthlySavings: (input.seats - input.teamSize) * seatPrice,
         })
       }
-      if (input.teamSize > 5) {
-        recs.push({
-          title: "Upgrade to ChatGPT Team",
-          description:
-            "Teams larger than 5 benefit from shared admin controls and higher rate limits on the Team plan.",
-          monthlySavings: -(input.seats * 5), // negative = it costs more, flag as advisory
-        })
-      }
       return recs
     },
-
     team: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
         recs.push({
           title: "Reduce unused ChatGPT Team licenses",
-          description:
-            "Your organization is paying for more ChatGPT Team licenses than actively required.",
+          description: "Your organization is paying for more ChatGPT Team licenses than actively required.",
           monthlySavings: (input.seats - input.teamSize) * seatPrice,
         })
       }
       if (input.teamSize <= 2) {
         recs.push({
           title: "Downgrade to ChatGPT Plus",
-          description:
-            "Smaller teams may not require collaboration-focused Team features.",
+          description: "Smaller teams may not require collaboration-focused Team features.",
           monthlySavings: input.seats * 5,
         })
       }
       return recs
     },
-
     enterprise: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
@@ -72,31 +59,26 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
       if (input.teamSize < 20) {
         recs.push({
           title: "Downgrade to ChatGPT Team",
-          description:
-            "Enterprise is designed for large orgs. Teams under 20 rarely need custom contracts and SSO.",
+          description: "Enterprise is designed for large orgs. Teams under 20 rarely need custom contracts and SSO.",
           monthlySavings: input.seats * 35,
         })
       }
       return recs
     },
-
     pro: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > 1) {
         recs.push({
           title: "Review ChatGPT Pro seat count",
-          description:
-            "ChatGPT Pro at $100/seat is designed for power users. Ensure all seats are actively used.",
+          description: "ChatGPT Pro at $100/seat is designed for power users. Ensure all seats are actively used.",
           monthlySavings: (input.seats - Math.ceil(input.teamSize * 0.5)) * seatPrice,
         })
       }
       return recs
     },
   },
-
   cursor: {
     free: () => [],
-
     pro: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
@@ -108,14 +90,12 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
       }
       return recs
     },
-
     business: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.teamSize < 5) {
         recs.push({
           title: "Consider Cursor Pro instead of Business",
-          description:
-            "Smaller engineering teams may not benefit from Business-tier admin controls.",
+          description: "Smaller engineering teams may not benefit from Business-tier admin controls.",
           monthlySavings: input.seats * 20,
         })
       }
@@ -129,7 +109,6 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
       return recs
     },
   },
-
   github_copilot: {
     individual: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
@@ -140,17 +119,8 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
           monthlySavings: (input.seats - input.teamSize) * seatPrice,
         })
       }
-      if (input.teamSize >= 5) {
-        recs.push({
-          title: "Consider Copilot Business",
-          description:
-            "Teams of 5+ benefit from centralized policy management and audit logs on the Business plan.",
-          monthlySavings: -(input.seats * 9),
-        })
-      }
       return recs
     },
-
     business: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
@@ -163,39 +133,33 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
       if (input.teamSize < 5) {
         recs.push({
           title: "Downgrade to Copilot Individual",
-          description:
-            "Small teams rarely need the org-level controls included in the Business plan.",
+          description: "Small teams rarely need the org-level controls included in the Business plan.",
           monthlySavings: input.seats * 9,
         })
       }
       return recs
     },
-
     enterprise: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.teamSize < 10) {
         recs.push({
           title: "Downgrade from Copilot Enterprise",
-          description:
-            "Enterprise controls are unnecessary for smaller development teams.",
+          description: "Enterprise controls are unnecessary for smaller development teams.",
           monthlySavings: input.seats * 20,
         })
       }
       if (input.seats > input.teamSize) {
         recs.push({
           title: "Remove unused Enterprise licenses",
-          description:
-            "At $39/seat, unused Enterprise licenses are the most expensive waste in your stack.",
+          description: "At $39/seat, unused Enterprise licenses are the most expensive waste in your stack.",
           monthlySavings: (input.seats - input.teamSize) * seatPrice,
         })
       }
       return recs
     },
   },
-
   claude: {
     free: () => [],
-
     pro: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
@@ -205,17 +169,8 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
           monthlySavings: (input.seats - input.teamSize) * seatPrice,
         })
       }
-      if (input.teamSize >= 5) {
-        recs.push({
-          title: "Consider Claude Team plan",
-          description:
-            "Claude Team offers higher usage limits and centralized billing for growing teams.",
-          monthlySavings: -(input.seats * 5),
-        })
-      }
       return recs
     },
-
     team: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
@@ -228,39 +183,33 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
       if (input.teamSize <= 2) {
         recs.push({
           title: "Downgrade to Claude Pro",
-          description:
-            "Very small teams may not need Team-tier collaboration features.",
+          description: "Very small teams may not need Team-tier collaboration features.",
           monthlySavings: input.seats * 5,
         })
       }
       return recs
     },
-
     max: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
         recs.push({
           title: "Reduce unused Claude Max seats",
-          description:
-            "At $100/seat, unused Max licenses are a significant overhead.",
+          description: "At $100/seat, unused Max licenses are a significant overhead.",
           monthlySavings: (input.seats - input.teamSize) * seatPrice,
         })
       }
       if (input.teamSize < 3) {
         recs.push({
           title: "Review Claude Max necessity",
-          description:
-            "Claude Max is designed for heavy power users. Evaluate if Pro or Team meets your actual usage.",
+          description: "Claude Max is designed for heavy power users. Evaluate if Pro or Team meets your actual usage.",
           monthlySavings: input.seats * 75,
         })
       }
       return recs
     },
   },
-
   gemini: {
     free: () => [],
-
     pro: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
@@ -272,32 +221,27 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
       }
       return recs
     },
-
     ultra: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.teamSize <= 3) {
         recs.push({
           title: "Review Gemini Ultra necessity",
-          description:
-            "Gemini Ultra may be excessive for smaller organizations with moderate AI usage.",
+          description: "Gemini Ultra may be excessive for smaller organizations with moderate AI usage.",
           monthlySavings: input.seats * 200,
         })
       }
       if (input.seats > input.teamSize) {
         recs.push({
           title: "Remove unused Gemini Ultra seats",
-          description:
-            "At $250/seat, even one unused Ultra license is a significant monthly waste.",
+          description: "At $250/seat, even one unused Ultra license is a significant monthly waste.",
           monthlySavings: (input.seats - input.teamSize) * seatPrice,
         })
       }
       return recs
     },
   },
-
   windsurf: {
     free: () => [],
-
     pro: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.seats > input.teamSize) {
@@ -309,14 +253,12 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
       }
       return recs
     },
-
     teams: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
       if (input.teamSize <= 2) {
         recs.push({
           title: "Downgrade Windsurf Teams plan",
-          description:
-            "Smaller teams may achieve similar productivity using Pro plans.",
+          description: "Smaller teams may achieve similar productivity using Pro plans.",
           monthlySavings: input.seats * 15,
         })
       }
@@ -334,70 +276,73 @@ const providerRules: Record<string, Record<string, AuditRule>> = {
 
 function calculateMonthlySpend(input: AuditInput) {
   const providerPricing = AI_PRICING[input.toolId]
-
   if (!providerPricing) {
     return { currentSpend: 0, seatPrice: 0 }
   }
-
   const seatPrice = providerPricing[input.plan.toLowerCase()] ?? 0
-
   return {
     currentSpend: seatPrice * input.seats,
     seatPrice,
   }
 }
 
-function computeResult(
-  currentSpend: number,
-  recommendations: AuditRecommendation[]
-): AuditResult {
-  const monthlySavings = recommendations
-    .filter((r) => r.monthlySavings > 0)
-    .reduce((acc, rec) => acc + rec.monthlySavings, 0)
-
-  return {
-    currentSpend,
-    optimizedSpend: Math.max(currentSpend - monthlySavings, 0),
-    monthlySavings,
-    annualSavings: monthlySavings * 12,
-  }
-}
-
-export async function runAudit(input: AuditInput): Promise<{
-  result: AuditResult
-  recommendations: AuditRecommendation[]
-}> {
+export async function runAudit(input: AuditInput): Promise<{ result: AuditResult, recommendations: AuditRecommendation[] }> {
+  
   const { currentSpend, seatPrice } = calculateMonthlySpend(input)
+  
+ 
+  const toolRules = providerRules[input.toolId.toLowerCase()]
+  let recommendations: AuditRecommendation[] = []
+  
+  if (toolRules && toolRules[input.plan.toLowerCase()]) {
+    recommendations = toolRules[input.plan.toLowerCase()](input, seatPrice)
+  }
 
-  const rule = providerRules[input.toolId]?.[input.plan.toLowerCase()]
-  const recommendations = rule ? rule(input, seatPrice) : []
+  
+  if (currentSpend >= 500 || input.plan.toLowerCase().includes('enterprise') || input.plan.toLowerCase().includes('api')) {
+    const credexDiscountSavings = currentSpend * 0.20;
+    recommendations.push({
+      title: "Source Infrastructure Credits via Credex",
+      description: `You are paying full retail for ${input.toolId}. Because you spend over $500/mo, you qualify to purchase secondary-market AI credits through Credex, which typically yields a 20%+ discount on identical infrastructure.`,
+      monthlySavings: credexDiscountSavings,
+    });
+  }
 
-  const result = computeResult(currentSpend, recommendations)
+  
+  if (input.toolId.toLowerCase() === 'cursor' && input.useCase.toLowerCase() === 'writing') {
+     if (seatPrice > 20) {
+        const mismatchSavings = (seatPrice - 20) * input.seats;
+        recommendations.push({
+          title: "Realign Tooling with Primary Use Case",
+          description: `Your primary use case is writing, but you are paying a premium for Cursor, an IDE. Switching to standard Claude Pro or ChatGPT Plus aligns tooling with actual needs and reduces seat costs.`,
+          monthlySavings: mismatchSavings,
+        });
+     }
+  }
 
-  return { result, recommendations }
+  
+  const totalMonthlySavings = recommendations.filter((r) => r.monthlySavings > 0).reduce((acc, rec) => acc + rec.monthlySavings, 0)
+
+  const finalSavings = Math.min(totalMonthlySavings, currentSpend);
+
+  const result: AuditResult = {
+    currentSpend, 
+    optimizedSpend: Math.max(currentSpend - finalSavings, 0),
+    monthlySavings: finalSavings,
+    annualSavings: finalSavings * 12,
+  };
+
+  return { result, recommendations };
 }
 
-export async function storeAudit(
-  input: AuditInput,
-  result: AuditResult,
-  recommendations: AuditRecommendation[],
-  summary?: string
-) {
-  console.log(
-    "🟡 recommendations before insert:",
-    recommendations
-  )
-
+export async function storeAudit(input: AuditInput,result: AuditResult,recommendations: AuditRecommendation[]) {
   const audit = await prisma.audit.create({
     data: {
       toolId: input.toolId,
       plan: input.plan,
-
       teamSize: input.teamSize,
       seats: input.seats,
-
-      monthlySpend: result.currentSpend,
-
+      monthlySpend: result.currentSpend, 
       useCase: input.useCase,
 
       currentSpend: result.currentSpend,
@@ -405,42 +350,15 @@ export async function storeAudit(
       monthlySavings: result.monthlySavings,
       annualSavings: result.annualSavings,
 
-      summary,
-    },
-  })
-
-  console.log(
-    "🟢 audit created:",
-    audit.id
-  )
-
-  if (recommendations.length > 0) {
-    try {
-      await prisma.recommendation.createMany({
-        data: recommendations.map((r) => ({
-          auditId: audit.id,
-          title: r.title,
-          description: r.description,
-          monthlySavings: r.monthlySavings,
+      recommendations: {
+        create: recommendations.map((rec) => ({
+          title: rec.title,
+          description: rec.description,
+          monthlySavings: rec.monthlySavings,
         })),
-      })
+      },
+    },
+  });
 
-      console.log(
-        "🟢 recommendations inserted"
-      )
-    } catch (error) {
-      console.error(
-        "🔴 recommendation insert failed:",
-        error
-      )
-
-      throw error
-    }
-  }
-
-  console.log(
-    "🟢 storeAudit completed"
-  )
-
-  return audit
+  return audit;
 }

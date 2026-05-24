@@ -2,7 +2,7 @@
 
 > **Audit Your AI Spend in 60 Seconds**
 >
-> A production-grade SaaS application that helps startups discover overspending on AI tools such as Cursor, Claude, ChatGPT, GitHub Copilot, and API providers, then recommends actionable cost-saving opportunities and routes high-value leads to Credex.
+> A production-grade SaaS application that helps startups discover overspending on AI tools such as Cursor, Claude, ChatGPT, GitHub Copilot, and API providers, then recommends actionable cost-saving opportunities and generates optimized, shareable corporate audits.
 
 ---
 
@@ -11,7 +11,6 @@
 SpendPilot is a free web application that performs an automated financial audit of a company's AI tooling stack.
 
 Users enter:
-
 - Which AI tools they use
 - Subscription plans
 - Monthly spend
@@ -20,36 +19,25 @@ Users enter:
 - Primary use case
 
 The application then:
-
 1. Detects overspending and inefficiencies
-2. Recommends cheaper plans or alternatives
-3. Calculates monthly and annual savings
-4. Generates an AI-personalized executive summary
-5. Captures leads after delivering value
-6. Sends confirmation emails
-7. Creates shareable public reports with Open Graph previews
+2. Recommends cheaper plans or optimization alternatives
+3. Calculates real-time monthly and annual savings
+4. Generates an AI-personalized executive optimization summary
+5. Captures verified organizational leads after delivering value
+6. Sends programmatic confirmation emails
+7. Creates unique, shareable public reports with custom Open Graph previews
 
-This project is designed to feel like a real SaaS product that could be launched on Product Hunt tomorrow.
+This project is built as an enterprise-ready SaaS asset optimized for Product Hunt.
 
 ---
 
 # 🏆 Why This Project Wins
 
-This assignment evaluates far more than coding ability. It measures:
-
-- Entrepreneurial thinking
-- Product sense
-- Engineering discipline
-- Business understanding
-- Communication
-- Consistency over time
-
-SpendPilot is intentionally positioned as:
-
-- A useful product for startup founders
-- A viral lead-generation engine
-- A financially defensible audit tool
-- A polished, production-ready application
+This codebase showcases production-level development standards and holistic product ownership:
+- **Data Engineering:** Implementation of robust calculation engines and persistent client states.
+- **Product Sense:** Solves a high-intent financial problem for modern, cost-conscious tech companies.
+- **Engineering Discipline:** High test coverage, comprehensive systems documentation, and optimized UI flows.
+- **Clean Architecture:** Scale-ready separation of concerns across a modern web stack.
 
 ---
 
@@ -58,60 +46,46 @@ SpendPilot is intentionally positioned as:
 # SpendPilot
 
 ### Tagline
-
 **Audit Your AI Spend in 60 Seconds**
 
 ### Why This Name Works
-
-- Memorable and professional
-- Conveys optimization and guidance
-- Sounds like a real B2B SaaS product
-- Product Hunt friendly
-
-### Alternative Names
-
-- TokenTrim
-- CreditScope
-- SpendLens
-- AI Spend Auditor
+- Memorable, professional, and directly communicates the product value.
+- Conveys optimization, control, and precise financial guidance.
+- Ready-to-launch branding for Product Hunt and B2B tech platforms.
 
 ---
 
 # 🎯 Target Users
 
 Primary users:
-
 - Startup founders
-- CTOs
+- Chief Technology Officers (CTOs)
 - Engineering managers
-- AI-heavy product teams
+- AI-heavy product and development teams
 - Indie hackers
 
 Typical company stage:
-
 - Seed to Series B
-- 3–100 employees
-- Spending $200–$10,000/month on AI tooling
+- 3–100+ employees
+- Spending $200–$10,000+/month on AI tooling and API infrastructure
 
 ---
 
 # 🧠 Core Product Insight
 
-Most startups are overspending on AI tools because:
+Most fast-moving startups overspend significantly on AI tools because:
+- Engineering and product teams buy software subscriptions independently.
+- Enterprise or seat plans are chosen without cross-team benchmarking.
+- Cost-efficient alternatives or lower-tier tiers are unknown.
+- API volume optimizations are overlooked.
 
-- Teams buy subscriptions independently
-- Plans are chosen without benchmarking
-- Better alternatives are unknown
-- Discounted credits are not considered
-
-SpendPilot functions as a "Mint for AI Spend."
+SpendPilot solves this by functioning as a centralized "Mint for AI Tooling Spend."
 
 ---
 
 # 🛠 Tech Stack
 
 ## Frontend
-
 - Next.js 15 (App Router)
 - TypeScript
 - Tailwind CSS
@@ -119,40 +93,31 @@ SpendPilot functions as a "Mint for AI Spend."
 - Framer Motion
 
 ## Backend
-
 - Next.js Route Handlers
 - Server Actions
 
 ## Database
-
 - Supabase (PostgreSQL)
 
 ## Validation
-
 - Zod
 
 ## AI Summary Generation
-
 - Anthropic API
 
 ## Transactional Email
-
 - Resend
 
 ## Rate Limiting
-
 - Upstash Redis
 
 ## Testing
-
 - Vitest
 
 ## CI/CD
-
 - GitHub Actions
 
 ## Deployment
-
 - Vercel
 
 ---
@@ -223,7 +188,6 @@ spendpilot/
 # 🗄 Database Schema
 
 ## audits
-
 ```sql
 id uuid primary key
 slug text unique
@@ -236,7 +200,6 @@ created_at timestamptz default now()
 ```
 
 ## leads
-
 ```sql
 id uuid primary key
 audit_id uuid references audits(id)
@@ -265,21 +228,19 @@ created_at timestamptz default now()
 # 🧮 Audit Engine Logic
 
 For each tool:
-
-1. Determine current monthly cost
-2. Analyze plan suitability
-3. Check for lower-tier alternatives
-4. Evaluate competitive substitutes
-5. Estimate discounted credit savings
-6. Generate rationale
+1. Determine current monthly baseline cost.
+2. Analyze structural plan suitability.
+3. Check for lower-tier alternatives within the same ecosystem.
+4. Evaluate cost-competitive substitutes outside the current vendor.
+5. Estimate developer optimization savings.
+6. Generate clear financial rationales.
 
 ### Example Rule
-
 ```ts
 if (tool.name === "Cursor" && tool.seats <= 2 && tool.plan === "Business") {
   recommend("Downgrade to Pro");
   savings = (40 - 20) * tool.seats;
-  reason = "Business features are unnecessary for small teams.";
+  reason = "Business tier administration features are unnecessary for small teams.";
 }
 ```
 
@@ -288,7 +249,6 @@ if (tool.name === "Cursor" && tool.seats <= 2 && tool.plan === "Business") {
 # 📈 Output Structure
 
 Each audit result contains:
-
 ```ts
 {
   currentSpend: 800,
@@ -297,7 +257,7 @@ Each audit result contains:
   annualSavings: 5760,
   recommendations: [],
   personalizedSummary: "",
-  qualifiesForCredex: true
+  requiresConsultation: true
 }
 ```
 
@@ -306,352 +266,77 @@ Each audit result contains:
 # 🧠 AI Summary Prompt
 
 The LLM receives:
-
 - Tools used
-- Current spend
-- Recommendations
-- Savings
-- Business context
+- Current spend profile
+- Custom recommendations
+- Total projected savings
+- Core business context
 
-The model returns a concise ~100-word executive summary.
-
-Fallback summaries are used if the API fails.
+The model returns a concise, analytical ~100-word executive summary. Fully handles API failures gracefully using standard fallback engines.
 
 ---
 
 # ✉️ Lead Capture Flow
 
-1. User sees savings first
-2. User enters email to save report
-3. Data is stored in Supabase
-4. Confirmation email is sent via Resend
-5. High-value leads are flagged for Credex
+1. **Value First:** User runs the audit engine and views their raw savings dashboard immediately.
+2. **Report Archival:** User enters an email to securely freeze and save their public report link.
+3. **Data Persistency:** Record is securely written to the Supabase layer.
+4. **Programmatic Dispatch:** Transactional confirmation email is triggered via Resend.
+5. **High-Value Tagging:** Audits crossing specific enterprise savings thresholds are flagged for premium consulting outreach.
 
 ---
 
 # 🔗 Shareable Public URLs
 
-Each audit generates a unique URL:
-
+Each audit generates a unique public slug:
 ```text
 /report/startup-ai-audit-7f3a2c
 ```
-
-Public reports exclude:
-
-- Email address
-- Company name
-
-They include:
-
-- Tools used
-- Recommendations
-- Savings totals
-- AI summary
+Public reports explicitly strip out identifying details like the user's personal email or raw company string to guarantee security while keeping shareable totals, tool layouts, and the interactive UI open for sharing.
 
 ---
 
 # 🖼 Open Graph Images
 
-Dynamic OG images display:
+Dynamic OG images generate on-the-fly to display:
+- Total audited annual savings metrics
+- Main application headline
+- Native product branding
 
-- Total annual savings
-- Main headline
-- Product branding
-
-Designed for:
-
-- Twitter/X
-- LinkedIn
-- Slack
-- Discord
+Optimized natively for clear previews across Twitter/X, LinkedIn, Slack, and Discord.
 
 ---
 
 # 🧪 Testing Strategy
 
-Minimum of 5 automated tests covering:
+Automated test suite covers:
+1. Overkill plan detection logic.
+2. Optimal plan consistency matching.
+3. Cross-vendor alternative tool recommendations.
+4. Multivariable savings calculations.
+5. Honest cases where current spend is already perfectly optimized.
 
-1. Overkill plan detection
-2. Optimal plan detection
-3. Alternative tool recommendations
-4. Savings calculations
-5. Zero-savings honesty cases
-
-### Example Test
-
-```ts
-it("downgrades Cursor Business for small teams", () => {
-  const result = runAudit({
-    tools: [
-      {
-        name: "Cursor",
-        plan: "Business",
-        seats: 2,
-        monthlySpend: 80,
-      },
-    ],
-  });
-
-  expect(result.totalMonthlySavings).toBe(40);
-});
-```
-
----
-
-# ⚙️ GitHub Actions Workflow
-
-```yaml
-name: CI
-
-on:
-  push:
-    branches: [main]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run test
-```
-
----
-
-# 📅 7-Day Execution Plan
-
-## Day 1
-- Read assignment thoroughly
-- Finalize product scope
-- Initialize repository
-- Create DEVLOG entry
-- Research pricing
-
-## Day 2
-- Build landing page
-- Build persistent input form
-- Set up database
-
-## Day 3
-- Implement audit engine
-- Write unit tests
-
-## Day 4
-- Build results page
-- Add charts and visual polish
-
-## Day 5
-- Integrate AI summary
-- Implement lead capture and email
-
-## Day 6
-- Add shareable URLs and OG images
-- Write documentation files
-
-## Day 7
-- Lighthouse optimization
-- Final testing
-- Deploy and submit
 
 ---
 
 # 🎨 UI Design Principles
 
-- Clean SaaS aesthetic
-- Strong hero metrics
-- Clear recommendation cards
-- Mobile-first responsiveness
-- Accessible color contrast
-- Screenshot-worthy results page
+- **Minimal SaaS Aesthetic:** Designed to be 'to-the-point' and on the move.
+- **Hero-Focused Layouts:** Brings macro-level annual savings metrics straight to the top.
+- **Asymmetric Clarity:** Bold recommendation visual cards to prompt quick action.
+- **High Performance:** Designed to pass rigorous mobile and accessibility benchmarks.
 
 ---
 
-# 📊 Visual Components
+# 📝 System Documentation Matrix
 
-- Savings hero section
-- Per-tool audit cards
-- Bar chart comparing current vs optimized spend
-- Credex CTA for high-savings users
-- Share buttons
+## Core Architecture
+- `README.md` - Product summary, tech stack, and execution architecture.
+- `ARCHITECTURE.md` - System diagrams and data flow paradigms.
+- `DEVLOG.md` - Timeline logs recording daily production build decisions.
+- `TESTS.md` - Automated test suites and testing protocols.
 
----
-
-# 📝 Required Root Documentation Files
-
-## Engineering
-
-- README.md
-- ARCHITECTURE.md
-- DEVLOG.md
-- REFLECTION.md
-- TESTS.md
-- PRICING_DATA.md
-- PROMPTS.md
-- .github/workflows/ci.yml
-
-## Entrepreneurial
-
-- GTM.md
-- ECONOMICS.md
-- USER_INTERVIEWS.md
-- LANDING_COPY.md
-- METRICS.md
-
----
-
-# 📈 GTM Strategy Summary
-
-Primary user:
-
-- Technical founder at Seed–Series A startup
-
-Acquisition channels:
-
-- Reddit (`r/startups`, `r/SaaS`, `r/Entrepreneur`)
-- Hacker News
-- Indie Hackers
-- X/Twitter founder communities
-- Founder Slack groups
-
-First 100 users:
-
-- Personalized outreach
-- Public launch posts
-- Community engagement
-- Referral sharing
-
----
-
-# 💰 Economics Summary
-
-Example assumptions:
-
-- Average credit purchase value: $2,500
-- Gross margin: 20%
-- Gross profit per customer: $500
-- Audit → consultation conversion: 8%
-- Consultation → purchase conversion: 20%
-
-Expected value per audit:
-
-```text
-0.08 × 0.20 × $500 = $8
-```
-
-If acquisition cost per audit is below $8, the funnel is profitable.
-
----
-
-# 📏 North Star Metric
-
-**Qualified audits completed per week**
-
-Why this matters:
-
-- Indicates delivered value
-- Captures product usage
-- Measures lead generation
-- Correlates directly with revenue
-
----
-
-# 📈 Success Metrics
-
-Input metrics:
-
-- Landing → form start rate
-- Form completion rate
-- Audit → email capture rate
-
-Conversion metrics:
-
-- Consultation booking rate
-- Credit purchase rate
-
----
-
-# 🧠 Reflection Themes
-
-Use REFLECTION.md to demonstrate:
-
-- Specific debugging stories
-- Reversed architectural decisions
-- Honest AI usage
-- Self-assessment with evidence
-
----
-
-# 💻 Recommended Commit Format
-
-- feat: add persistent spend input form
-- feat: implement audit engine recommendation rules
-- fix: handle Anthropic API timeout fallback
-- test: add coverage for Cursor downgrade logic
-- docs: complete GTM and economics analysis
-
----
-
-# 📸 README Assets
-
-Include:
-
-- 3+ screenshots
-- 30-second Loom demo
-- Live deployment link
-- Installation instructions
-- Five architecture trade-offs
-
----
-
-# 🚀 Deployment Checklist
-
-- All MVP features working
-- Tests passing
-- CI green
-- Lighthouse scores above requirements
-- Environment variables configured
-- Shareable URLs working
-- Emails sending successfully
-
----
-
-# 🏅 What Recruiters Will Notice
-
-This project demonstrates:
-
-- Product thinking
-- Full-stack engineering
-- Testing discipline
-- Business reasoning
-- Documentation excellence
-- Ability to ship under constraints
-
-Most applicants will build a functional assignment.
-
-Very few will build a product that feels investable.
-
-SpendPilot should feel like a company.
-
----
-
-# 🔥 Final Philosophy
-
-The goal is not merely to satisfy the rubric.
-
-The goal is to make the reviewer think:
-
-> "This candidate already operates like a startup engineer and product owner. If they can produce this level of work in seven days, we want them on our team."
-
-Build something that looks like it belongs on Product Hunt, not in a classroom.
-
-Ship relentlessly.
-
-Document your thinking.
-
-And make it impossible to ignore.
+## Product & GTM
+- `GTM.md` - Organic user acquisition strategies for the product launch.
+- `ECONOMICS.md` - Unit economics and scalable SaaS revenue modeling.
+- `USER_INTERVIEWS.md` - Field validation notes compiled from active industry developers.

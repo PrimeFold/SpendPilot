@@ -33,9 +33,6 @@ export default function RootLayout({
             >
               SpendPilot
             </a>
-            <span className="text-[10px] uppercase tracking-[0.3em] text-slate-500">
-              v0.1 · Demo
-            </span>
           </nav>
         </header>
 

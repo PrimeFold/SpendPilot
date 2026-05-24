@@ -3,7 +3,8 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { AuditResult } from "@/types/audit"
-
+import { ShareLink } from "@/components/shareLink"
+import BorderGlow from '@/components/BorderGlow';
 type Recommendation = {
   title: string
   description: string
@@ -18,20 +19,18 @@ interface AuditReport {
   seats: number
   monthlySpend: number
   useCase: string
-
   result: AuditResult
   recommendations: Recommendation[]
-
   summary?: string | null
   createdAt: string
 }
 
 interface ReportClientProps {
   report: AuditReport
+  id:string
 }
 
-export function ReportClient({ report }: ReportClientProps) {
-  // Format the date normally
+export function ReportClient({ report,id }: ReportClientProps) {
   const createdDate = new Date(report.createdAt).toLocaleString()
 
   return (
@@ -99,15 +98,25 @@ export function ReportClient({ report }: ReportClientProps) {
                 ))}
               </div>
             </div>
-
-            <div className="space-y-3 rounded-3xl border border-border bg-background p-5">
-              <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-                AI summary
-              </p>
-              <p className="text-sm leading-6 text-foreground">
-                {report.summary || "Generating AI summary..."}
-              </p>
-            </div>
+              <div>
+                <BorderGlow
+                  edgeSensitivity={30}
+                  glowColor="40 80 80"
+                  backgroundColor="#ffff"
+                  glowRadius={40}
+                  glowIntensity={1}
+                  coneSpread={25}
+                  animated={false}
+                  colors={['#c084fc', '#f472b6', '#38bdf8']}
+                >
+                  <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+                    AI summary ✨
+                  </p>
+                  <p className="text-sm mt-2 leading-6 text-foreground">
+                    {report.summary || "Generating AI summary..."}
+                  </p>
+                </BorderGlow>
+              </div>
           </section>
 
           <section className="space-y-6 rounded-3xl border border-border bg-card p-6">
@@ -167,8 +176,15 @@ export function ReportClient({ report }: ReportClientProps) {
                 </p>
               )}
             </div>
+            <div className="space-y-4 rounded-3xl border border-border bg-background p-5">
+              <p className="text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
+                share your audit
+              </p>
+              
+               <ShareLink id={id}/>
+              
+            </div>
           </section>
-
         </div>
       </div>
     </main>

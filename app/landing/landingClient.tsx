@@ -1,19 +1,37 @@
 "use client"
-
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import {LogoLoop as OriginalLogoLoop} from '@/components/LogoLoop'
+import { CSSProperties } from "react"
 
-const TOOLS = [
-  "Cursor",
-  "GitHub Copilot",
-  "Claude",
-  "ChatGPT",
-  "Anthropic API",
-  "OpenAI API",
-  "Gemini",
-  "Windsurf",
-]
+interface LogoLoopProps {
+  logos: { src: string; alt: string; }[];
+  speed?: number;
+  direction?: 'left' | 'right' | 'up' | 'down';
+  width?: string | number;
+  logoHeight?: number;
+  gap?: number;
+  pauseOnHover?: boolean;
+  hoverSpeed?: number;
+  fadeOut?: boolean;
+  fadeOutColor?: string;
+  scaleOnHover?: boolean;
+  ariaLabel?: string;
+  className?: string;
+  style?: CSSProperties;
+}
+const LogoLoop = OriginalLogoLoop as React.FC<LogoLoopProps>;
 
+const LOGOS = [
+  { src: "/cursor.svg", alt: "Cursor" },
+  { src: "/copilot-color.svg", alt: "GitHub Copilot" },
+  { src: "/claude-color.svg", alt: "Claude" },
+  { src: "/openai.svg", alt: "OpenAI" },
+  { src: "/anthropic.svg", alt: "Anthropic" },
+  { src: "/openai.svg", alt: "OpenAI" },
+  { src: "/gemini-color.svg", alt: "Gemini" },
+  { src: "/windsurf.svg", alt: "Windsurf" },
+];
 const STEPS = [
   {
     n: "01",
@@ -39,13 +57,10 @@ const STEPS = [
 
 export const LandingClient = () => {
   return (
-    <section className="bg-slate-50 text-slate-950 min-h-screen">
-      <div className="mx-auto max-w-6xl px-6 py-20 sm:px-8 lg:px-10">
+    <section className="md:mb-10 bg-slate-50 text-slate-950 min-h-screen overflow-x-hidden">
+      <div className="mx-auto max-w-6xl px-6 pt-20 sm:px-8 lg:px-10">
         <div className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div className="space-y-6">
-            <span className="inline-flex rounded-full border border-slate-200 px-3 py-1 text-[10px] uppercase tracking-[0.35em] text-slate-700">
-              Defensible AI audit
-            </span>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
               Audit AI spend with seat-level and vendor-fit reasoning.
             </h1>
@@ -55,14 +70,8 @@ export const LandingClient = () => {
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
               <Link href="/dashboard">
                 <Button className="rounded-none bg-slate-950 px-8 py-3 text-[10px] uppercase tracking-widest text-white hover:bg-slate-800">
-                  Start audit
+                  get started
                 </Button>
-              </Link>
-              <Link
-                href="/dashboard"
-                className="text-[10px] uppercase tracking-[0.3em] text-slate-600 hover:text-slate-950 transition-colors"
-              >
-                Open the audit form →
               </Link>
             </div>
           </div>
@@ -84,7 +93,22 @@ export const LandingClient = () => {
             </div>
           </div>
         </div>
+      </div>
 
+      <LogoLoop
+        className="md:mt-10"
+        logos={LOGOS}
+        speed={40}
+        direction="left"
+        gap={100}
+        logoHeight={35}
+        hoverSpeed={30}
+        scaleOnHover
+        fadeOut={true}
+        fadeOutColor="rgb(250 250 252)"
+      />
+
+      <div className="mx-auto max-w-6xl px-6 pb-20 sm:px-8 lg:px-10">
         <div className="mt-16 grid gap-6 lg:grid-cols-3">
           {STEPS.map((step) => (
             <div key={step.n} className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -107,14 +131,6 @@ export const LandingClient = () => {
               </Button>
             </Link>
           </div>
-        </div>
-
-        <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {TOOLS.map((tool) => (
-            <div key={tool} className="rounded-3xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-              {tool}
-            </div>
-          ))}
         </div>
       </div>
     </section>

@@ -9,7 +9,7 @@ interface ReportPageProps {
 export default async function ReportPage({ params }: ReportPageProps) {
   const { id } = await params;
 
-  // 1. Fetch the data
+  
   const audit = await prisma.audit.findUnique({
     where: { id },
     include: { recommendations: true },
@@ -27,8 +27,6 @@ export default async function ReportPage({ params }: ReportPageProps) {
     monthlySpend: audit.monthlySpend,
     useCase: audit.useCase,
     summary: audit.summary,
-
-    
     result: {
       currentSpend: audit.currentSpend,
       optimizedSpend: audit.optimizedSpend,
@@ -44,5 +42,5 @@ export default async function ReportPage({ params }: ReportPageProps) {
     })),
   };
 
-  return <ReportClient report={report} />
+  return <ReportClient report={report} id={id}/>
 }

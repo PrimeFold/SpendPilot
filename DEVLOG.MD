@@ -402,3 +402,12 @@ Biggest improvement came from:
 ---
 
 # 24 May 2026
+
+
+## Features and Improvements 
+* Added share link option 
+* Added new ui elements 
+
+
+## Finalizing 
+* Done polishing project.

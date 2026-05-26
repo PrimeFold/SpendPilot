@@ -18,6 +18,7 @@ type AuditRule = (
 const providerRules: Record<string, Record<string, AuditRule>> = {
   chatgpt: {
     free: () => [],
+
     plus: (input, seatPrice) => {
       const recs: AuditRecommendation[] = []
 
@@ -421,7 +422,6 @@ export async function runAudit(
       )
   }
 
-  // Tool / use-case mismatch logic
   if (
     input.toolId.toLowerCase() === "cursor" &&
     input.useCase.toLowerCase() === "writing"
@@ -437,6 +437,23 @@ export async function runAudit(
         monthlySavings: mismatchSavings,
       })
     }
+  }
+
+  if (
+    currentSpend >= 500 ||
+    input.plan.toLowerCase().includes("enterprise") ||
+    input.plan.toLowerCase().includes("api")
+  ) {
+    const credexDiscountSavings =
+      currentSpend * 0.2
+
+    recommendations.push({
+      title:
+        "Source Infrastructure Credits via Credex",
+      description: `You are paying full retail for ${input.toolId}. Because your spend profile qualifies for enterprise-scale optimization, secondary-market AI infrastructure credits through Credex can typically reduce identical infrastructure costs by 20% or more.`,
+      monthlySavings:
+        credexDiscountSavings,
+    })
   }
 
   const totalMonthlySavings = recommendations
